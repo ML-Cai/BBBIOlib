@@ -1,3 +1,4 @@
+
 LIB_PATH = ./BBBio_lib/
 LIBRARIES = BBBio
 
@@ -21,11 +22,16 @@ SEVEN_SCAN : Demo_SevenScan/SevenScan.c libBBBio.a
 GPIO_STATUS : Demo_GPIO_Status/GPIO_status.c libBBBio.a
 	gcc -o GPIO_status Demo_GPIO_Status/GPIO_status.c  -L ${LIB_PATH} -lBBBio
 
+
+28015 :  Demo_Ultrasonic28015/Ultrasonic28015.c libBBBio.a
+	gcc -o Ultrasonic28015 Demo_Ultrasonic28015/Ultrasonic28015.c -L ${LIB_PATH} -lBBBio
+
+
 TMP : Demo_tmp/tmp.c libBBBio.a
 	gcc -o TMP Demo_tmp/tmp.c  -L ${LIB_PATH} -lBBBio
 
 
 .PHONY: clean
 clean :
-	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_status SevenScan
+	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_status SevenScan Ultrasonic28015 TMP
 
