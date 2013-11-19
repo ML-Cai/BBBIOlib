@@ -11,8 +11,9 @@ Simple C I/O library of Beaglebone balck
 
 	V2.1	November.7 2013 - VagetableAvenger (BBBlib) : add some comment and modify function name
 
-	V2.2	November.10 2013 - VagetableAvenger (BBBlib) : add GPIO Enable/Disable function
+	V2.2	November.10 2013 - VagetableAvenger (BBBlib) : add GPIO Enable/Disable function (GPIO 1~3)
 
+	V2.3	November.19 2013 - VagetableAvenger (BBBlib) : add GPIO Enable/Disable function (GPIO 0)
 
 =============================================================================================
 

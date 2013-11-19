@@ -14,7 +14,7 @@
 #ifndef _BBBIOLIB_H_
 #define _BBBIOLIB_H_
 
-#define BBBIO_LIB_DBG 0
+#define BBBIO_LIB_DBG 1
 #define BBBIO_DIR_IN 0
 #define BBBIO_DIR_OUT 1
 
@@ -25,6 +25,9 @@
 #define CONTROL_MODULE 0x44e10000
 #define CONTROL_LEN 0xA00
 
+// Clock Module Peripheral Registers
+/*
+*/
 
 #define BBBIO_CM_PER_ADDR			0x44e00000
 #define BBBIO_CM_PER_LEN			0x4000
@@ -33,36 +36,49 @@
 #define BBBIO_CM_PER_GPIO2_CLKCTRL	0xB0
 #define BBBIO_CM_PER_GPIO3_CLKCTRL	0xB4
 
+
+// Clock Module Wakeup Registers
+/* @Source : AM335x Technical Reference Manual ,page 976~1040
+ *                         Table 8-88. CM_WKUP REGISTERS
+ *
+*/
+
+#define BBBIO_CM_WKUP_ADDR 			0x44e00400
+#define BBBIO_CM_WKUP_OFFSET_FROM_CM_PER	0x400		// for mapping alignment . BBBIO_CM_WKUP_ADDR is not aligned of page boundary in 4k page .
+#define BBBIO_CM_WKUP_LEN 			0x100
+#define BBBIO_CM_WKUP_GPIO0_CLKCTRL 		0x8		// This register manages the GPIO0 clocks 	, Section 8.1.12.2.3 ,page : 983.
+
+
 // AM335X GPIO memory mapping address
 /* @Source : AM335x Technical Reference Manual ,page 171~173
  			 Table 2-2. L4_WKUP Peripheral Memory Map (continued)
 			 Table 2-3. L4_PER Peripheral Memory Map (continued)
 */
-#define BBBIO_GPIO0 		0
+#define BBBIO_GPIO0 		0		// GPIO ID
 #define BBBIO_GPIO1 		1
 #define BBBIO_GPIO2 		2
-#define BBBIO_GPIO3			3
+#define BBBIO_GPIO3		3
 #define BBBIO_GPIO0_ADDR	0x44e07000
 #define BBBIO_GPIO1_ADDR 	0x4804c000
 #define BBBIO_GPIO2_ADDR 	0x481AC000
 #define BBBIO_GPIO3_ADDR 	0x481AE000
-#define BBBIO_GPIOX_LEN 	0x1000	// GPIO length , ex: GPIO0 0x44e07000 ~ 0x44e07FFF
+#define BBBIO_GPIOX_LEN 	0x1000		// GPIO length , ex: GPIO0 0x44e07000 ~ 0x44e07FFF
 
 //#define GPIO1_SIZE (GPIO1_END_ADDR - GPIO1_START_ADDR)
 // GPIO control register address
 /* @Source : AM335x Technical Reference Manual ,page 4640~4666
  			 Table 25-5. GPIO REGISTERS
-			 
+
 			 note : GPIO_SETDATAOUT is single pin setting
 					GPIO_DATAOUT is hole pin setting
 */
 #define BBBIO_GPIO_OE 			0x134	// Output Data Enable 			, Section 25.4.1.16 ,page : 4656
 #define BBBIO_GPIO_DATAIN 		0x138	// Sampled Input Data 			, Section 25.4.1.17 ,page : 4657
-#define BBBIO_GPIO_DATAOUT 		0x13C	// Data to set on output pins	, Section 25.4.1.18 ,page : 4658
-#define BBBIO_GPIO_CLEARDATAOUT 0x190	// Clear Data Output Register 	, Section 25.4.1.25 ,page : 4665 , 1 is set pin to Low ,  BUT 0 is no effect
-#define BBBIO_GPIO_SETDATAOUT 	0x194	// Set Data Output Register 	, Section 25.4.1.26 ,page : 4666 , 1 is set pin to HIGH ,  BUT 0 is no effect
+#define BBBIO_GPIO_DATAOUT 		0x13C	// Data to set on output pins		, Section 25.4.1.18 ,page : 4658
+#define BBBIO_GPIO_CLEARDATAOUT		0x190	// Clear Data Output Register 		, Section 25.4.1.25 ,page : 4665 , 1 is set pin to Low ,  BUT 0 is no effect
+#define BBBIO_GPIO_SETDATAOUT		0x194	// Set Data Output Register 		, Section 25.4.1.26 ,page : 4666 , 1 is set pin to HIGH ,  BUT 0 is no effect
 
-#define BBBIO_GPIO_CTRL			0x130	// 
+#define BBBIO_GPIO_CTRL			0x130	//
 
 // call this first. Returns 0 on success, -1 on failure
 int iolib_init(void);
