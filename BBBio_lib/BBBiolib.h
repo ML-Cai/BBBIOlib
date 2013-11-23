@@ -153,10 +153,10 @@ inline char BBBIO_get(char port, char pin);
 #define BBBIO_GPIO_PIN_30	1<< 30
 #define BBBIO_GPIO_PIN_31	1<< 31
 
-int BBBIO_GPIO_set_dir(unsigned int  gpio, unsigned int inset , unsigned int outset); 
-inline void BBBIO_GPIO_set_high(char gpio, unsigned int pinset);
-inline void BBBIO_GPIO_set_low(char gpio, unsigned int pinset);
-inline int BBBIO_GPIO_get(char gpio, unsigned int pin);			// GPIO data register 32 bit
+int BBBIO_GPIO_set_dir(unsigned int gpio, unsigned int inset , unsigned int outset);
+inline void BBBIO_GPIO_high(unsigned int gpio ,unsigned int pinset);
+inline void BBBIO_GPIO_low(unsigned int gpio ,unsigned int pinset);
+inline int BBBIO_GPIO_get(char gpio, unsigned int pinset);			// GPIO data register 32 bit
 
 #endif // _IOLIB_H_
 

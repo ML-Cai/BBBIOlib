@@ -30,8 +30,13 @@ GPIO_STATUS : Demo_GPIO_Status/GPIO_status.c libBBBio.a
 TMP : Demo_tmp/tmp.c libBBBio.a
 	gcc -o TMP Demo_tmp/tmp.c  -L ${LIB_PATH} -lBBBio
 
+SMOTOR : Demo_ServerMotor/ServerMotor.c libBBBio.a
+	gcc -o SMOTOR Demo_ServerMotor/ServerMotor.c -L ${LIB_PATH} -lBBBio
+
+LED_GPIO : Demo_LED_GPIO/LED_GPIO.c libBBBio.a
+	gcc -o LED_GPIO  Demo_LED_GPIO/LED_GPIO.c -L ${LIB_PATH} -lBBBio
 
 .PHONY: clean
 clean :
-	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_status SevenScan Ultrasonic28015 TMP
+	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO
 

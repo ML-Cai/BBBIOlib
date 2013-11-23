@@ -15,6 +15,8 @@ Simple C I/O library of Beaglebone balck
 
 	V2.3	November.19 2013 - VagetableAvenger (BBBlib) : add GPIO Enable/Disable function (GPIO 0)
 
+	V2.4	November.23 2013 - VagetableAvenger (BBBlib) : add whole GPIO control function (I/O and direction set)
+
 =============================================================================================
 
 this library support simple I/O for beaglebone black ,using C .
@@ -28,6 +30,14 @@ Demo List :
 		using LED and Switch to control basic I/O .
 
 		# make LED
+
+	LED_GPIO demo :
+
+		Switch on DIP swtich , the corresponding LED will be glittered .
+
+		this demo express how to using BBBIO_GPIO_ prefix funcion to control whole GPIO .
+
+		# make LED_GPIO
 
 
 	ADT7301 demo :
