@@ -1,15 +1,18 @@
-// BBBiolib.c
-// Simple I/O library of Beaglebone balck
-// 
-// this fnnction is under construction , so mix some libio and BBBIO express ,
-// libio support some basic function for Beaglebone black I/O .
-// BBBIO support I/O function using GPIO as unit .
-// all function will integrated as soon as fast .
-//
-// v1 	October 2013 - shabaz (iolib)
-// v2 	October 2013 - shabaz (iolib)
-// V2.1 November 2013 - VagetableAvenger (BBBlib)
-// V2.2 November 2013 - VagetableAvenger (BBBlib) : add GPIO Enable/Disable function
+/* BBBiolib.c
+ * Simple I/O library of Beaglebone balck
+ *
+ * this fnnction is under construction , so mix some libio and BBBIO express ,
+ *     libio : support some basic function for Beaglebone black I/O .
+ *     BBBIO : support I/O function using GPIO as unit .
+ *
+ * all function will integrated as soon as fast .
+ *
+ * v1 	October 2013 - shabaz (iolib)
+ * v2 	October 2013 - shabaz (iolib)
+ * v2.1 November 2013 - VagetableAvenger (BBBlib)
+ * v2.2 November 2013 - VagetableAvenger (BBBlib) : add GPIO Enable/Disable function
+ * v2.4 November.23 2013 - VagetableAvenger (BBBlib) : add whole GPIO control function (I/O and direction set)
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,8 +86,8 @@ iolib_init(void)
 
 	if (memh)
 	{
-		if (BBBIO_LIB_DBG) printf("iolib_init: memory already mapped?\n");
-		return(-1);
+	    if (BBBIO_LIB_DBG) printf("iolib_init: memory already mapped?\n");
+	    return -1;
 	}
 
 	PortSet_ptr[0]=(char*)p8_PortSet;
@@ -96,12 +99,11 @@ iolib_init(void)
 	memh=open("/dev/mem", O_RDWR);
 
 	// mapping Clock Module Peripheral Registers
-
 	cm_per_addr = mmap(0, BBBIO_CM_PER_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, memh, BBBIO_CM_PER_ADDR);
 	if(cm_per_addr == MAP_FAILED)
     	{
             if (BBBIO_LIB_DBG) printf("iolib_init: CM_PER mmap failure! ,error :%s\n" ,strerror(errno));
-            return(-1);
+            return -1;
 	}
 
 
@@ -114,38 +116,26 @@ iolib_init(void)
 	cm_wkup_addr =(void *)cm_per_addr + BBBIO_CM_WKUP_OFFSET_FROM_CM_PER ;
 
 
-
 	// mapping Address of GPIO 0~4
 	for (i=0; i<4; i++)
 	{
-		gpio_addr[i] = mmap(0 ,BBBIO_GPIOX_LEN ,PROT_READ | PROT_WRITE ,MAP_SHARED ,memh ,GPIO_AddressOffset[i]); 
-		if(gpio_addr[i] == MAP_FAILED)
-		{
-			if (BBBIO_LIB_DBG) printf("iolib_init: gpio mmap failure!\n");
-				return(-1);
-		}
+	    gpio_addr[i] = mmap(0 ,BBBIO_GPIOX_LEN ,PROT_READ | PROT_WRITE ,MAP_SHARED ,memh ,GPIO_AddressOffset[i]);
+	    if(gpio_addr[i] == MAP_FAILED)
+	    {
+		if (BBBIO_LIB_DBG) printf("iolib_init: gpio mmap failure!\n");
+		    return -1;
+	    }
 	}
 
 	// mapping Control Module Registers
-	// for pin mux control , not implemented today
-	if (BBBIO_PINMUX_EN)
+	// for pin mux control , or display expansion header informaiton
+	ctrl_addr = mmap(0, BBBIO_CONTROL_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, memh, BBBIO_CONTROL_MODULE);
+	if(ctrl_addr == MAP_FAILED)
 	{
-		ctrl_addr = mmap(0, CONTROL_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, ctrlh, CONTROL_MODULE);
-		if(ctrl_addr == MAP_FAILED)
-		{
-				if (BBBIO_LIB_DBG) printf("iolib_init: control module mmap failure!\n");
-			return(-1);
-		}
+	    if (BBBIO_LIB_DBG) printf("iolib_init: control module mmap failure!\n");
+		return -1;
 	}
-	// set the bit in the OE register in the appropriate region
-	if (BBBIO_LIB_DBG)
-	{
-		for (i=0; i<4; i++)
-		{
-			printf("mmap region %d address is 0x%08x\n", i, gpio_addr[i]);
-		}
-	}
-	return(0);
+	return 0;
 }
 //-----------------------------------------------------------------------------------------------
 // ********************************
@@ -268,32 +258,240 @@ BBBIO_sys_GPIO_CLK_status()
 {
 	volatile unsigned int* reg ;
 	unsigned int reg_value =0;
-	
+	const char s_GDBLCK[][9]={"FCLK_DIS" ,"FCLK_EN"};
+	const char s_IDLEST[][8]={"Func" ,"Trans" ,"Idle" ,"Disable"};
+	const char s_MODULEMODE[][8]={"Disable" ,"Reserve" ,"Enable" ,"Reserve"};
+
+	int v_GDBLCK ;
+	int v_IDLEST ;
+	int v_MODULEMODE ;
+
+	printf("\n******************************************************\n");
+	printf("************ GPIO Clock module Information ***********\n");
+	printf("******************************************************\n");
 	reg =(void*)cm_per_addr + BBBIO_CM_PER_L4LS_CLKSTCTRL;
 	reg_value = *reg ;
 	printf("CM_PER CM_PER_L4LS_CLKSTCTRL : %X\n\n", reg_value );
 
+	reg =(void*)cm_wkup_addr + BBBIO_CM_WKUP_GPIO0_CLKCTRL ;
+        reg_value = *reg ;
+	v_GDBLCK = (reg_value >>18) & 0x01 ;
+	v_IDLEST = (reg_value >>16) & 0x02 ;
+	v_MODULEMODE =  reg_value & 0x02 ;
+
+        printf("CM_WKUP CM_WKUP_GPIO0_CLKCTRL : %X\n", *reg );
+        printf("\t[18]    OPTFCLKEN_GPIO_0_GDBCLK : %X (%s)\n", v_GDBLCK ,s_GDBLCK[v_GDBLCK]);
+        printf("\t[17-18] IDLEST                  : %X (%s)\n", v_IDLEST ,s_IDLEST[v_IDLEST]);
+        printf("\t[0-1]   MODULEMODE              : %X (%s)\n\n", v_MODULEMODE ,s_MODULEMODE[v_MODULEMODE]);
+
 	reg =(void*)cm_per_addr + BBBIO_CM_PER_GPIO1_CLKCTRL;
 	reg_value = *reg ;
+        v_GDBLCK = (reg_value >>18) & 0x01 ;
+        v_IDLEST = (reg_value >>16) & 0x02 ;
+        v_MODULEMODE =  reg_value & 0x02 ;
+
 	printf("CM_PER CM_PER_GPIO1_CLKCTRL : %X\n", *reg );
-	printf("\t[18]    OPTFCLKEN_GPIO_1_GDBCLK : %X\n", (reg_value >>18) & 0x01 );
-	printf("\t[17-18] IDLEST                  : %X\n", (reg_value >>16) & 0x02 );
-	printf("\t[0-1]   MODULEMODE              : %X\n\n", reg_value & 0x02 );
+        printf("\t[18]    OPTFCLKEN_GPIO_1_GDBCLK : %X (%s)\n", v_GDBLCK ,s_GDBLCK[v_GDBLCK]);
+        printf("\t[17-18] IDLEST                  : %X (%s)\n", v_IDLEST ,s_IDLEST[v_IDLEST]);
+        printf("\t[0-1]   MODULEMODE              : %X (%s)\n\n", v_MODULEMODE ,s_MODULEMODE[v_MODULEMODE]);
 
 	reg =(void*)cm_per_addr + BBBIO_CM_PER_GPIO2_CLKCTRL;
 	reg_value = *reg ;
+        v_GDBLCK = (reg_value >>18) & 0x01 ;
+        v_IDLEST = (reg_value >>16) & 0x02 ;
+        v_MODULEMODE =  reg_value & 0x02 ;
+
 	printf("CM_PER CM_PER_GPIO2_CLKCTRL : %X\n", *reg );
-	printf("\t[18]    OPTFCLKEN_GPIO_2_GDBCLK : %X\n", (reg_value >>18) & 0x01 );
-	printf("\t[17-18] IDLEST                  : %X\n", (reg_value >>16) & 0x02 );
-	printf("\t[0-1]   MODULEMODE              : %X\n\n", reg_value & 0x02 );
+        printf("\t[18]    OPTFCLKEN_GPIO_2_GDBCLK : %X (%s)\n", v_GDBLCK ,s_GDBLCK[v_GDBLCK]);
+        printf("\t[17-18] IDLEST                  : %X (%s)\n", v_IDLEST ,s_IDLEST[v_IDLEST]);
+        printf("\t[0-1]   MODULEMODE              : %X (%s)\n\n", v_MODULEMODE ,s_MODULEMODE[v_MODULEMODE]);
 
 	reg =(void*)cm_per_addr + BBBIO_CM_PER_GPIO3_CLKCTRL;
 	reg_value = *reg ;
-	printf("CM_PER CM_PER_GPIO3_CLKCTRL : %X\n", *reg );
-	printf("\t[18]    OPTFCLKEN_GPIO_3_GDBCLK : %X\n", (reg_value >>18) & 0x01 );
-	printf("\t[17-18] IDLEST                  : %X\n", (reg_value >>16) & 0x02 );
-	printf("\t[0-1]   MODULEMODE              : %X\n\n", reg_value & 0x02 );
+        v_GDBLCK = (reg_value >>18) & 0x01 ;
+        v_IDLEST = (reg_value >>16) & 0x02 ;
+        v_MODULEMODE =  reg_value & 0x02 ;
 
+	printf("CM_PER CM_PER_GPIO3_CLKCTRL : %X\n", *reg );
+        printf("\t[18]    OPTFCLKEN_GPIO_0_GDBCLK : %X (%s)\n", v_GDBLCK ,s_GDBLCK[v_GDBLCK]);
+        printf("\t[17-18] IDLEST                  : %X (%s)\n", v_IDLEST ,s_IDLEST[v_IDLEST]);
+        printf("\t[0-1]   MODULEMODE              : %X (%s)\n\n", v_MODULEMODE ,s_MODULEMODE[v_MODULEMODE]);
+}
+//-----------------------------------------------------------------------------------------------
+/**************************************************
+ Show Beaglebone Black Expansion Header Information
+ **************************************************
+ *
+ *      @param gpio     : GPIO number , BBBIO_GPIO0 / BBBIO_GPIO1 / BBBIO_GPIO2 / BBBIO_GPIO3 .
+ *
+ *
+ *      @example        : BBBIO_sys_Expansion_Header_status(BBBIO_GPIO1);
+ *
+ */
+
+const unsigned int ExpHeader_MODE0_P8[]={BBBIO_EXPANSION_HEADER_GND ,    // 1
+					BBBIO_EXPANSION_HEADER_GND ,    // 2
+					BBBIO_CONF_GPMC_AD6 ,           // 3
+					BBBIO_CONF_GPMC_AD7 ,           // 4
+					BBBIO_CONF_GPMC_AD2 ,           // 5
+					BBBIO_CONF_GPMC_AD3 ,           // 6
+					BBBIO_CONF_GPMC_ADVN_ALE ,      // 7
+					BBBIO_CONF_GPMC_OEN_REN ,       // 8
+					BBBIO_CONF_GPMC_BEN0_CLE ,      // 9
+					BBBIO_CONF_GPMC_WEN ,           // 10
+					BBBIO_CONF_GPMC_AD13 ,          // 11
+					BBBIO_CONF_GPMC_AD12 ,          // 12
+					BBBIO_CONF_GPMC_AD9 ,           // 13
+					BBBIO_CONF_GPMC_AD10 ,          // 14
+					BBBIO_CONF_GPMC_AD15 ,          // 15
+					BBBIO_CONF_GPMC_AD14 ,          // 16
+					BBBIO_CONF_GPMC_AD11 ,          // 17
+
+					BBBIO_EXPANSION_HEADER_UNKNOW ,
+//					BBBIO_CONF_GPMC_CLK_MUX0 ,      // 18
+
+					BBBIO_CONF_GPMC_AD8 ,           // 19
+					BBBIO_CONF_GPMC_CSN2 ,          // 20
+					BBBIO_CONF_GPMC_CSN1 ,          // 21
+					BBBIO_CONF_GPMC_AD5 ,           // 22
+					BBBIO_CONF_GPMC_AD4 ,           // 23
+					BBBIO_CONF_GPMC_AD1 ,           // 24
+					BBBIO_CONF_GPMC_AD0 ,           // 25
+					BBBIO_CONF_GPMC_CSN0 ,          // 26
+					BBBIO_CONF_LCD_VSYNC ,          // 27
+					BBBIO_CONF_LCD_PCLK ,           // 28
+					BBBIO_CONF_LCD_HSYNC ,          // 29
+					BBBIO_CONF_LCD_AC_BIAS_EN ,     // 30
+					BBBIO_CONF_LCD_DATA14 ,         // 31
+					BBBIO_CONF_LCD_DATA15 ,         // 32
+					BBBIO_CONF_LCD_DATA13 ,         // 33
+					BBBIO_CONF_LCD_DATA11 ,         // 34
+					BBBIO_CONF_LCD_DATA12 ,         // 35
+					BBBIO_CONF_LCD_DATA10 ,         // 36
+					BBBIO_CONF_LCD_DATA8 ,          // 37
+					BBBIO_CONF_LCD_DATA9 ,          // 38
+					BBBIO_CONF_LCD_DATA6 ,          // 39
+					BBBIO_CONF_LCD_DATA7 ,          // 40
+					BBBIO_CONF_LCD_DATA4 ,          // 41
+					BBBIO_CONF_LCD_DATA5 ,          // 42
+					BBBIO_CONF_LCD_DATA2 ,          // 43
+					BBBIO_CONF_LCD_DATA3 ,          // 44
+					BBBIO_CONF_LCD_DATA0 ,          // 45
+					BBBIO_CONF_LCD_DATA1 };         // 46
+
+
+const unsigned int ExpHeader_MODE0_P9[]={BBBIO_EXPANSION_HEADER_GND ,		// 1
+					BBBIO_EXPANSION_HEADER_GND ,		// 2
+					BBBIO_EXPANSION_HEADER_DC_33V ,		// 3
+					BBBIO_EXPANSION_HEADER_DC_33V ,		// 4
+					BBBIO_EXPANSION_HEADER_VDD_5V ,		// 5
+					BBBIO_EXPANSION_HEADER_VDD_5V ,		// 6
+					BBBIO_EXPANSION_HEADER_SYS_5V ,		// 7
+					BBBIO_EXPANSION_HEADER_SYS_5V ,		// 8
+					BBBIO_EXPANSION_HEADER_PWR_BUT ,	// 9
+					BBBIO_EXPANSION_HEADER_SYS_RESETN ,	// 10
+					BBBIO_CONF_GPMC_WAIT0 ,				// 11
+
+					BBBIO_EXPANSION_HEADER_UNKNOW ,
+//					BBBIO_CONF_GPMC_BE1N ,				// 12
+
+					BBBIO_CONF_GPMC_WPN ,				// 13
+					BBBIO_CONF_GPMC_A2 ,				// 14
+					BBBIO_CONF_GPMC_A0 ,				// 15
+					BBBIO_CONF_GPMC_A3 ,				// 16
+					BBBIO_CONF_SPI0_CS0 ,				// 17
+					BBBIO_CONF_SPI0_D1 ,				// 18
+					BBBIO_CONF_UART1_RTSN ,				// 19
+					BBBIO_CONF_UART1_CTSN ,				// 20
+					BBBIO_CONF_SPI0_D0 ,				// 21
+					BBBIO_CONF_SPI0_SCLK ,				// 22
+					BBBIO_CONF_GPMC_A1 ,				// 23
+					BBBIO_CONF_UART1_TXD ,				// 24
+					BBBIO_CONF_MCASP0_AHCLKX ,			// 25
+					BBBIO_CONF_UART1_RXD ,				// 26
+					BBBIO_CONF_MCASP0_FSR ,				// 27
+					BBBIO_CONF_MCASP0_AHCLKR ,			// 28
+					BBBIO_CONF_MCASP0_FSX ,				// 29
+					BBBIO_CONF_MCASP0_AXR0 ,			// 30
+					BBBIO_CONF_MCASP0_ACLKX ,			// 31
+					BBBIO_EXPANSION_HEADER_VADC ,		// 32
+					BBBIO_EXPANSION_HEADER_AIN4 ,		// 33
+					BBBIO_EXPANSION_HEADER_AGND ,		// 34
+					BBBIO_EXPANSION_HEADER_AIN6 ,		// 35
+					BBBIO_EXPANSION_HEADER_AIN5 ,		// 36
+					BBBIO_EXPANSION_HEADER_AIN2 ,		// 37
+					BBBIO_EXPANSION_HEADER_AIN3 ,		// 38
+					BBBIO_EXPANSION_HEADER_AIN0 ,		// 39
+					BBBIO_EXPANSION_HEADER_AIN1 ,		// 40
+					BBBIO_CONF_XDMA_EVENT_INTR1 ,		// 41
+					BBBIO_CONF_ECAP0_IN_PWM0_OUT ,		// 42
+					BBBIO_EXPANSION_HEADER_GND ,		// 43
+					BBBIO_EXPANSION_HEADER_GND ,		// 44
+					BBBIO_EXPANSION_HEADER_GND ,            // 45
+                                        BBBIO_EXPANSION_HEADER_GND };           // 46
+
+const unsigned int* ExpHeader_MODE0[2]={ExpHeader_MODE0_P8,ExpHeader_MODE0_P9};
+
+void
+BBBIO_sys_Expansion_Header_status(unsigned int port)
+{
+        volatile unsigned int* reg ;
+        unsigned int reg_value =0;
+	int i ;
+	const char extra_status[][12]={ "GND" ,"DC_33V" ,"CDD_5V" ,"SYS_5V" ,"PWR_BUT" ,
+				       	"SYS_RESET" ,"VADC" ,"AIN4" ,"AGND" ,"AIN6" ,"AIN5" ,
+				       	"AIN2" ,"AIN3" ,"AIN0" ,"AIN1" ,"Unknow"};
+	const char s_SLEWCTRL[2][5] ={"Fast" ,"Slow"} ;		//register value express  string
+	const char s_EXACTIVE[2][8] ={"Disable" ,"Enable"} ;
+	const char s_PULLTYPESEL[2][9]={"Pulldown" ,"Pullup"};
+	const char s_PULLUPEN[2][8] ={"Enable" ,"Disable"} ;
+
+	int v_SLEWCTRL ;	//register value
+	int v_EXACTIVE ;
+	int v_PULLTYPESEL ;
+	int v_PULLUPEN ;
+	int v_MODE ;
+
+	if ((port<8) || (port>9))               // if input is not port8 and port 9 , because BBB support P8/P9 Connector
+	{
+	    printf("Expansion_Header only have P8 and P9 ,please check your input port :%d\n",port);
+            return ;
+	}
+	port -=8 ;
+
+        printf("\n******************************************************\n");
+        printf("************ Expansion Header Information ************\n");
+        printf("******************************************************\n");
+
+	for(i=0 ;i< 46 ; i++)
+ 	{
+	    if(ExpHeader_MODE0[port][i] &0xF0000000)
+	    {
+		printf("P%d_%2d : \t%s\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t| P%d_%2d\n" ,port+8 ,i+1 ,
+							&extra_status[ExpHeader_MODE0[port][i] &0x0f][0] ,
+							port+8 ,i+1);
+	    }
+	    else
+	    {
+	    	reg =(void*)ctrl_addr + ExpHeader_MODE0[port][i] ;
+            	reg_value = *reg ;
+
+		v_SLEWCTRL = reg_value>>6 ;
+		v_EXACTIVE = reg_value >>5 &0x01;
+		v_PULLTYPESEL = reg_value >>4 & 0x01;
+		v_PULLUPEN = reg_value >>3 & 0x01;
+		v_MODE	=reg_value  &0x07;
+
+		printf("P%d_%2d : \tSLEWCTRL %d (%s) \t,RXACTIVE %d (%s)\t,PULLTYPESEL %d (%s) \t,PULLDEN %d (%s) \t,MUXMODE : %d \t| P%d_%2d \n" ,
+				port+8 ,i+1 ,
+				v_SLEWCTRL ,s_SLEWCTRL[v_SLEWCTRL] ,
+				v_EXACTIVE ,s_EXACTIVE[v_EXACTIVE] ,
+				v_PULLTYPESEL ,s_PULLTYPESEL[v_PULLTYPESEL] ,
+				v_PULLUPEN ,s_PULLUPEN[v_PULLUPEN] ,
+				v_MODE ,
+				port+8 ,i+1);
+	    }
+	}
 }
 //-----------------------------------------------------------------------------------------------
 /*********************************
