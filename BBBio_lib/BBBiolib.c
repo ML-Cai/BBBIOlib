@@ -495,6 +495,141 @@ BBBIO_sys_Expansion_Header_status(unsigned int port)
 }
 //-----------------------------------------------------------------------------------------------
 /*********************************
+ Enable GPIO Debouncing
+ *******************************
+ *      @param port     : BBB Expansion Header ID , 8 or 9 .
+ *      @param pin    	: which pin yo want to control .
+ *      @param DB_time  : Debouncing time , Debouncing Value = (GDB_time + 1) * 31 microseconds
+ *
+ *      @return         : 0 for success , -1 for failed
+ *
+ *      @example        : BBBIO_sys_Enable_Debouncing(8 ,11 , 2);	// Enable Expansion Header 8 ,pin 11 's dedbouncing .
+ *									// debouncing time is 93 us
+ *
+ *      Warring         : 1. please check your contorl pin is setted in input mode first , or it may cause some problem .
+ *			  2. this function will enable GPIO's GDBCLK automatically .
+ */
+
+int  BBBIO_sys_Enable_Debouncing(unsigned int port ,unsigned int pin ,unsigned int GDB_time)
+{
+	volatile unsigned int* reg;
+	int param_error=0;                              // parameter error
+	const unsigned int GPIO_CLKCTRL[] ={BBBIO_CM_PER_GPIO1_CLKCTRL ,
+					    BBBIO_CM_PER_GPIO2_CLKCTRL ,
+					    BBBIO_CM_PER_GPIO3_CLKCTRL};
+
+        // sanity checks
+        if (memh==0)
+            param_error=1;
+        if ((port<8) || (port>9))               // if input is not port8 and port 9 , because BBB support P8/P9 Connector
+            param_error=1;
+        if ((pin<1) || (pin>46))                // if pin over/underflow , range : 1~46
+            param_error=1;
+        if (PortSet_ptr[port][pin]<0)   // pass GND OR VCC (PortSet as -1)
+            param_error=1;
+	if(GDB_time <0 || GDB_time >255)
+	    param_error=1;
+
+        if (param_error)
+        {
+            if (BBBIO_LIB_DBG) printf("BBBIO_sys_Enable_Debouncing : parameter error!\n");
+            return -1 ;
+	}
+	port -=8 ;
+	pin -=1 ;
+
+        // Enable GPIO1 GDBCLK
+	if(PortSet_ptr[port][pin]==0)	//the CLKCTRL of  GPIO 0 is in CM_WKUP register
+	{
+	    reg =(void*)cm_wkup_addr + BBBIO_CM_WKUP_GPIO0_CLKCTRL;
+            *reg |= 1 <<18;
+	}
+	else
+	{
+	    reg =(void*)cm_per_addr + GPIO_CLKCTRL[PortSet_ptr[port][pin]-1] ;
+	    *reg |= 1 <<18;
+	}
+
+	// Enable Debouncing
+        reg = (void*)gpio_addr[PortSet_ptr[port][pin]] +BBBIO_GPIO_DEBOUNCENABLE ;
+	*reg |= PortIDSet_ptr[port][pin] ;
+
+	reg = (void*)gpio_addr[PortSet_ptr[port][pin]] +BBBIO_GPIO_DEBOUNCINGTIME ;
+	*reg = GDB_time ;
+
+	return 0;
+
+}
+//-----------------------------------------------------------------------------------------------
+/*********************************
+ Disable GPIO Debouncing
+ *******************************
+ *      @param port     : BBB Expansion Header ID , 8 or 9 .
+ *      @param pin      : which pin yo want to control .
+ *      @param DB_time  : Debouncing time , Debouncing Value = (GDB_time + 1) * 31 microseconds
+ *
+ *      @return         : 0 for success , -1 for failed
+ *
+ *      @example        : BBBIO_sys_Disable_Debouncing(8 ,11 ,0);       // Disable Expansion Header 8 ,pin 11 's dedbouncing .
+ *                                                                      // debouncing time is 1 us (no effect , just recover to reset value)
+ *
+ *      Warring         : 1. please check your contorl pin is setted in input mode first , or it may cause some problem .
+ *                         2. this function will enable GPIO's GDBCLK automatically .
+ */
+
+int  BBBIO_sys_Disable_Debouncing(unsigned int port ,unsigned int pin ,unsigned int GDB_time)
+{
+        volatile unsigned int* reg;
+        int param_error=0;                              // parameter error
+        const unsigned int GPIO_CLKCTRL[] ={BBBIO_CM_PER_GPIO1_CLKCTRL ,
+                                            BBBIO_CM_PER_GPIO2_CLKCTRL ,
+                                            BBBIO_CM_PER_GPIO3_CLKCTRL};
+
+        // sanity checks
+        if (memh==0)
+            param_error=1;
+        if ((port<8) || (port>9))               // if input is not port8 and port 9 , because BBB support P8/P9 Connector
+            param_error=1;
+        if ((pin<1) || (pin>46))                // if pin over/underflow , range : 1~46
+            param_error=1;
+        if (PortSet_ptr[port][pin]<0)   // pass GND OR VCC (PortSet as -1)
+            param_error=1;
+        if(GDB_time <0 || GDB_time >255)
+            param_error=1;
+
+        if (param_error)
+        {
+            if (BBBIO_LIB_DBG) printf("BBBIO_sys_Disable_Debouncing : parameter error!\n");
+            return -1 ;
+        }
+        port -=8 ;
+        pin -=1 ;
+
+        // Enable GPIO1 GDBLCK
+        if(PortSet_ptr[port][pin]==0)   //the CLKCTRL of  GPIO 0 is in CM_WKUP register
+        {
+            reg =(void*)cm_wkup_addr + BBBIO_CM_WKUP_GPIO0_CLKCTRL;
+            *reg &= ~1 <<18;
+        }
+        else
+        {
+            reg =(void*)cm_per_addr + GPIO_CLKCTRL[PortSet_ptr[port][pin]-1] ;
+            *reg &= ~1 <<18;
+        }
+
+        // Enable Debouncing
+        reg = (void*)gpio_addr[PortSet_ptr[port][pin]] +BBBIO_GPIO_DEBOUNCENABLE ;
+        *reg &= ~PortIDSet_ptr[port][pin] ;
+
+      	reg = (void *)gpio_addr[PortSet_ptr[port][pin]] +BBBIO_GPIO_DEBOUNCINGTIME ;
+      	*reg = GDB_time ;
+
+}
+
+
+
+//-----------------------------------------------------------------------------------------------
+/*********************************
  Enable GPIO (enable clock)
  *******************************
  * Enable GPIO module clock
@@ -572,7 +707,7 @@ int BBBIO_sys_Enable_GPIO(unsigned int gpio)		// Enable GPIOx's clock
  */
 int BBBIO_sys_Disable_GPIO(unsigned int gpio)		// Disable GPIOx's clock
 {
-	int param_error=0;				// parameter error 
+	int param_error=0;				// parameter error
 	volatile unsigned int* reg;		// GPIO register
 
 	// sanity checks

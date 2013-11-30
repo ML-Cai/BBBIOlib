@@ -25,6 +25,7 @@
 // not implemented today
 #define BBBIO_PINMUX_EN 0
 
+// ***************************************************************
 // Control Module Registers
 /* @Source : AM335x Technical Reference Manual ,page 1123~1127
  *                         Table 9-10. CONTROL_MODULE REGISTERS
@@ -171,16 +172,7 @@
 #define BBBIO_CONF_TCK		0x9DC
 
 
-
-
-
-
-
-
-
-
-
-
+// ***************************************************************
 // Clock Module Peripheral Registers
 /*
 */
@@ -194,7 +186,7 @@
 #define BBBIO_CM_PER_GPIO2_CLKCTRL	0xB0
 #define BBBIO_CM_PER_GPIO3_CLKCTRL	0xB4
 
-
+// ***************************************************************
 // Clock Module Wakeup Registers
 /* @Source : AM335x Technical Reference Manual ,page 976~1040
  *                         Table 8-88. CM_WKUP REGISTERS
@@ -206,7 +198,7 @@
 #define BBBIO_CM_WKUP_LEN 			0x100
 #define BBBIO_CM_WKUP_GPIO0_CLKCTRL 		0x8		// This register manages the GPIO0 clocks 	, Section 8.1.12.2.3 ,page : 983.
 
-
+// ***************************************************************
 // AM335X GPIO memory mapping address
 /* @Source : AM335x Technical Reference Manual ,page 171~173
  			 Table 2-2. L4_WKUP Peripheral Memory Map (continued)
@@ -237,6 +229,8 @@
 #define BBBIO_GPIO_SETDATAOUT		0x194	// Set Data Output Register 		, Section 25.4.1.26 ,page : 4666 , 1 is set pin to HIGH ,  BUT 0 is no effect
 
 #define BBBIO_GPIO_CTRL			0x130	//
+#define BBBIO_GPIO_DEBOUNCENABLE	0x150	// Input Debounce Enable		, Section 25.4.1.23 ,page : 4663
+#define BBBIO_GPIO_DEBOUNCINGTIME	0x154	// debouncing time			, Section 25.4.1.24 ,page : 4664
 
 // call this first. Returns 0 on success, -1 on failure
 int iolib_init(void);

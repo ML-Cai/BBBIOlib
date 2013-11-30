@@ -23,6 +23,17 @@ this library support simple I/O for beaglebone black ,using C .
 
 in Demo_* directory include some demo using this library ,each circuit layout and document in file directory .
 
+
+Hotw to use :
+
+        Build libBBBio.a :
+
+                # make
+
+        Build Demos : (ex : ADT7301 demo)
+
+                # make ADT7301
+
 Demo List :
 
 	LED demo :
@@ -70,14 +81,9 @@ Demo List :
 
 		# make 28015
 
+	Debouncing Demo :
 
+		this demo show an simple demo for Buttom Debouncing , using AM335x's debouncing unit. it display push count on 2~3's .
 
-Hotw to use :
-
-	Build libBBBio.a :
-
-		# make
-	
-	Build Demos : (ex : ADT7301 demo)
-
-		# make ADT7301
+		# make DEBOUNCING
+		

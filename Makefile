@@ -36,7 +36,10 @@ SMOTOR : Demo_ServerMotor/ServerMotor.c libBBBio.a
 LED_GPIO : Demo_LED_GPIO/LED_GPIO.c libBBBio.a
 	gcc -o LED_GPIO  Demo_LED_GPIO/LED_GPIO.c -L ${LIB_PATH} -lBBBio
 
+DEBOUNCING : Demo_Debouncing/Debouncing.c libBBBio.a
+	gcc -o Debouncing Demo_Debouncing/Debouncing.c -L ${LIB_PATH} -lBBBio
+
 .PHONY: clean
 clean :
-	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO
+	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO Debouncing
 
