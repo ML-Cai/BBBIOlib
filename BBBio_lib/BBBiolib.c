@@ -430,6 +430,7 @@ const unsigned int ExpHeader_MODE0_P9[]={BBBIO_EXPANSION_HEADER_GND ,		// 1
 					BBBIO_EXPANSION_HEADER_GND ,            // 45
                                         BBBIO_EXPANSION_HEADER_GND };           // 46
 
+// Expansion Header access ptr
 const unsigned int* ExpHeader_MODE0[2]={ExpHeader_MODE0_P8,ExpHeader_MODE0_P9};
 
 void
@@ -474,6 +475,13 @@ BBBIO_sys_Expansion_Header_status(unsigned int port)
 	    else
 	    {
 	    	reg =(void*)ctrl_addr + ExpHeader_MODE0[port][i] ;
+
+		if((i+2) == 46)
+                {
+                    *reg &= ~0x08 ;
+                }
+
+
             	reg_value = *reg ;
 
 		v_SLEWCTRL = reg_value>>6 ;
@@ -493,6 +501,38 @@ BBBIO_sys_Expansion_Header_status(unsigned int port)
 	    }
 	}
 }
+//-----------------------------------------------------------------------------------------------
+int BBBIO_sys_pin_mux(unsigned int port ,unsigned int pin)
+{
+	int param_error=0;
+	volatile unsigned int* reg;
+
+ 	// sanity checks
+        if (memh==0)
+            param_error=1;
+        if ((port<8) || (port>9))               // if input is not port8 and port 9 , because BBB support P8/P9 Connector
+            param_error=1;
+        if ((pin<1) || (pin>46))                // if pin over/underflow , range : 1~46
+            param_error=1;
+        if (PortSet_ptr[port][pin]<0)   	// pass GND OR VCC (PortSet as -1)
+            param_error=1;
+
+        if (param_error)
+        {
+            if (BBBIO_LIB_DBG) printf("BBBIO_sys_pin_mux : parameter error!\n");
+            return -1 ;
+        }
+        port -=8 ;
+        pin -=1 ;
+
+	reg =(void*)ctrl_addr + ExpHeader_MODE0[port][pin] ;
+
+	*reg &= ~0x8 ;	//enable pulldown
+	*reg &= ~0x4;
+	printf("OK\n");
+}
+
+
 //-----------------------------------------------------------------------------------------------
 /*********************************
  Enable GPIO Debouncing

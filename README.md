@@ -17,6 +17,7 @@ Simple C I/O library of Beaglebone balck
 
 	V2.4	November.23 2013 - VagetableAvenger (BBBlib) : add whole GPIO control function (I/O and direction set)
 
+	V2.5	December.7  2013 - VagetableAvenger (BBBlib) : change directory architecture ,add Demo/ and Toolkit/ directory .
 =============================================================================================
 
 this library support simple I/O for beaglebone black ,using C .
@@ -24,7 +25,7 @@ this library support simple I/O for beaglebone black ,using C .
 in Demo_* directory include some demo using this library ,each circuit layout and document in file directory .
 
 
-Hotw to use :
+**Hotw to use :**
 
         Build libBBBio.a :
 
@@ -34,7 +35,23 @@ Hotw to use :
 
                 # make ADT7301
 
-Demo List :
+**Toolkit List :**
+
+        GPIO CLK Status toolkit :
+
+                it's an utility to show GPIO clock module status of  GPIO0 /GPIO1 / GPIO2 / GPIO3 . 
+
+		Help for check GPIO clock module enable or not . if GPIO clock is disable ,access pin in that will cause "bus error" .
+
+		# make GPIO_STATUS
+
+        Expansion Header toolkit :
+
+                it shows the "current" status of Expansion Header P8 and P9 , include Pin mode , pull-high/low .... etc .
+
+                # make EP_STATUS
+
+**Demo List :**
 
 	LED demo :
 
@@ -68,12 +85,6 @@ Demo List :
 		HOT to Disable HDMI ? 
 
 			http://www.logicsupply.com/blog/2013/07/18/disabling-the-beaglebone-black-hdmi-cape/ 
-
-	GPIO Status demo :
-
-		it's an utility for show GPIO clock module status of  GPIO1 / GPIO2 / GPIO3 .
-
-		# make GPIO_STATUS
 
 	Ultrasonic Range sensor 28015 Demo:
 

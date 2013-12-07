@@ -1,5 +1,8 @@
 
 LIB_PATH = ./BBBio_lib/
+DEMO_PATH = ./Demo/
+TOOLKIT_PATH = ./Toolkit/
+
 LIBRARIES = BBBio
 
 all : libBBBio.a
@@ -9,37 +12,47 @@ libBBBio.a : ${LIB_PATH}BBBiolib.c ${LIB_PATH}BBBiolib.h
 	ar -rs ${LIB_PATH}libBBBio.a ${LIB_PATH}BBBiolib.o
 	cp ${LIB_PATH}libBBBio.a ./
 
+#---------------------------------------------------
+# Demo
+#---------------------------------------------------
 
-LED : Demo_LED/LED.c libBBBio.a
-	gcc -o LED Demo_LED/LED.c -L ${LIB_PATH} -lBBBio
+LED : ${DEMO_PATH}Demo_LED/LED.c libBBBio.a
+	gcc -o LED ${DEMO_PATH}Demo_LED/LED.c -L ${LIB_PATH} -lBBBio
 
-ADT7301 : Demo_ADT7301/ADT7301.c libBBBio.a
-	gcc -o ADT7301 Demo_ADT7301/ADT7301.c -L ${LIB_PATH} -lBBBio
+ADT7301 : ${DEMO_PATH}Demo_ADT7301/ADT7301.c libBBBio.a
+	gcc -o ADT7301 ${DEMO_PATH}Demo_ADT7301/ADT7301.c -L ${LIB_PATH} -lBBBio
 
-SEVEN_SCAN : Demo_SevenScan/SevenScan.c libBBBio.a
-	gcc -o SevenScan Demo_SevenScan/SevenScan.c  -L ${LIB_PATH} -lBBBio
+SEVEN_SCAN : ${DEMO_PATH}Demo_SevenScan/SevenScan.c libBBBio.a
+	gcc -o SevenScan ${DEMO_PATH}Demo_SevenScan/SevenScan.c  -L ${LIB_PATH} -lBBBio
 
-GPIO_STATUS : Demo_GPIO_Status/GPIO_status.c libBBBio.a
-	gcc -o GPIO_status Demo_GPIO_Status/GPIO_status.c  -L ${LIB_PATH} -lBBBio
+28015 :  ${DEMO_PATH}Demo_Ultrasonic28015/Ultrasonic28015.c libBBBio.a
+	gcc -o Ultrasonic28015 ${DEMO_PATH}Demo_Ultrasonic28015/Ultrasonic28015.c -L ${LIB_PATH} -lBBBio
+
+SMOTOR : ${DEMO_PATH}Demo_ServerMotor/ServerMotor.c libBBBio.a
+	gcc -o SMOTOR ${DEMO_PATH}Demo_ServerMotor/ServerMotor.c -L ${LIB_PATH} -lBBBio -pthread
+
+LED_GPIO : ${DEMO_PATH}Demo_LED_GPIO/LED_GPIO.c libBBBio.a
+	gcc -o LED_GPIO ${DEMO_PATH}Demo_LED_GPIO/LED_GPIO.c -L ${LIB_PATH} -lBBBio
+
+DEBOUNCING : ${DEMO_PATH}Demo_Debouncing/Debouncing.c libBBBio.a
+	gcc -o Debouncing ${DEMO_PATH}Demo_Debouncing/Debouncing.c -L ${LIB_PATH} -lBBBio
+
+4x4keypad : ${DEMO_PATH}Demo_4x4keypad/4x4keypad.c libBBBio.a
+	gcc -o 4x4keypad ${DEMO_PATH}Demo_4x4keypad/4x4keypad.c -L ${LIB_PATH} -lBBBio
 
 
-28015 :  Demo_Ultrasonic28015/Ultrasonic28015.c libBBBio.a
-	gcc -o Ultrasonic28015 Demo_Ultrasonic28015/Ultrasonic28015.c -L ${LIB_PATH} -lBBBio
+#---------------------------------------------------
+# toolkit 
+#---------------------------------------------------
 
+GPIO_STATUS : ${TOOLKIT_PATH}Toolkit_GPIO_CLK_Status/GPIO_status.c libBBBio.a
+	gcc -o GPIO_CLK_status ${TOOLKIT_PATH}Toolkit_GPIO_CLK_Status/GPIO_status.c  -L ${LIB_PATH} -lBBBio
 
-TMP : Demo_tmp/tmp.c libBBBio.a
-	gcc -o TMP Demo_tmp/tmp.c  -L ${LIB_PATH} -lBBBio
+EP_STATUS : ${TOOLKIT_PATH}Toolkit_EP_Status/EP_status.c libBBBio.a
+	gcc -o EP_status ${TOOLKIT_PATH}Toolkit_EP_Status/EP_status.c -L ${LIB_PATH} -lBBBio
 
-SMOTOR : Demo_ServerMotor/ServerMotor.c libBBBio.a
-	gcc -o SMOTOR Demo_ServerMotor/ServerMotor.c -L ${LIB_PATH} -lBBBio
-
-LED_GPIO : Demo_LED_GPIO/LED_GPIO.c libBBBio.a
-	gcc -o LED_GPIO  Demo_LED_GPIO/LED_GPIO.c -L ${LIB_PATH} -lBBBio
-
-DEBOUNCING : Demo_Debouncing/Debouncing.c libBBBio.a
-	gcc -o Debouncing Demo_Debouncing/Debouncing.c -L ${LIB_PATH} -lBBBio
 
 .PHONY: clean
 clean :
-	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO Debouncing
+	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO Debouncing 4x4keypad EP_status
 
