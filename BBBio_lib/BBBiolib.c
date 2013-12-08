@@ -502,6 +502,9 @@ BBBIO_sys_Expansion_Header_status(unsigned int port)
 	}
 }
 //-----------------------------------------------------------------------------------------------
+// *********************************
+// no effect , don't use that!!
+// ********************************
 int BBBIO_sys_pin_mux(unsigned int port ,unsigned int pin)
 {
 	int param_error=0;
@@ -527,7 +530,7 @@ int BBBIO_sys_pin_mux(unsigned int port ,unsigned int pin)
 
 	reg =(void*)ctrl_addr + ExpHeader_MODE0[port][pin] ;
 
-	*reg &= ~0x8 ;	//enable pulldown
+	*reg |= 0x8 ;	//enable pulldown
 	*reg &= ~0x4;
 	printf("OK\n");
 }

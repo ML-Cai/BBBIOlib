@@ -173,18 +173,34 @@
 
 
 // ***************************************************************
+// PWMSS Registers
+/*
+*/
+#define BBBIO_PWMSS_ADDR
+
+#define BBBIO_PWMSS_ADDR_IDVER		0x0
+#define BBBIO_PWMSS_ADDR_SYSCONFIG	0x4
+#define BBBIO_PWMSS_ADDR_CLKCONFIG	0x8
+#define BBBIO_PWMSS_ADDR_CLKSTATUS	0xC
+
+
+
+// ***************************************************************
 // Clock Module Peripheral Registers
 /*
 */
 
-#define BBBIO_CM_PER_ADDR			0x44e00000
-#define BBBIO_CM_PER_LEN			0x4000
+#define BBBIO_CM_PER_ADDR		0x44e00000
+#define BBBIO_CM_PER_LEN		0x4000
 
 // register offset
 #define BBBIO_CM_PER_L4LS_CLKSTCTRL	0x0
 #define BBBIO_CM_PER_GPIO1_CLKCTRL	0xAC
 #define BBBIO_CM_PER_GPIO2_CLKCTRL	0xB0
 #define BBBIO_CM_PER_GPIO3_CLKCTRL	0xB4
+#define BBBIO_CM_PER_EPWMSS0_CLKCTRL	0xD4
+#define BBBIO_CM_PER_EPWMSS1_CLKCTRL	0xCC
+#define BBBIO_CM_PER_EPWMSS2_CLKCTRL	0xD8
 
 // ***************************************************************
 // Clock Module Wakeup Registers
