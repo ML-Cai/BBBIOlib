@@ -2,6 +2,8 @@
 LIB_PATH = ./BBBio_lib/
 DEMO_PATH = ./Demo/
 TOOLKIT_PATH = ./Toolkit/
+LAB_PATH = ./Lab/
+
 
 LIBRARIES = BBBio
 
@@ -33,7 +35,7 @@ SEVEN_SCAN : ${DEMO_PATH}Demo_SevenScan/SevenScan.c libBBBio.a
 	gcc -o Ultrasonic28015 ${DEMO_PATH}Demo_Ultrasonic28015/Ultrasonic28015.c -L ${LIB_PATH} -lBBBio
 
 SMOTOR : ${DEMO_PATH}Demo_ServerMotor/ServerMotor.c libBBBio.a
-	gcc -o SMOTOR ${DEMO_PATH}Demo_ServerMotor/ServerMotor.c -L ${LIB_PATH} -lBBBio -pthread
+	gcc -o SMOTOR ${DEMO_PATH}Demo_ServerMotor/ServerMotor.c -L ${LIB_PATH} -lBBBio
 
 LED_GPIO : ${DEMO_PATH}Demo_LED_GPIO/LED_GPIO.c libBBBio.a
 	gcc -o LED_GPIO ${DEMO_PATH}Demo_LED_GPIO/LED_GPIO.c -L ${LIB_PATH} -lBBBio
@@ -56,6 +58,14 @@ GPIO_STATUS : ${TOOLKIT_PATH}Toolkit_GPIO_CLK_Status/GPIO_status.c libBBBio.a
 
 EP_STATUS : ${TOOLKIT_PATH}Toolkit_EP_Status/EP_status.c libBBBio.a
 	gcc -o EP_status ${TOOLKIT_PATH}Toolkit_EP_Status/EP_status.c -L ${LIB_PATH} -lBBBio
+
+
+#---------------------------------------------------
+# Lab
+#---------------------------------------------------
+
+RA : ${LAB_PATH}Lab_Robot_Arm/Robot_Arm.c libBBBio.a
+	gcc -o RA  ${LAB_PATH}Lab_Robot_Arm/Robot_Arm.c -L ${LIB_PATH} -lBBBio -pthread
 
 
 .PHONY: clean

@@ -1,0 +1,43 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "../../BBBio_lib/BBBiolib.h"
+
+int
+main(void)
+{
+	iolib_init();
+
+	int i;
+	float SM_1_duty =0;
+
+/*
+	for(i=60 ;i<= 140 ;i+=10)
+	{
+	    SM_1_duty  = 4.0f + i* 0.04444f ;
+	    printf("Angle : %d , duty : %f\n" ,i ,SM_1_duty);
+	    BBBIO_PWMSS_Setting(0 , 50.0f ,4.2f , 4.2);
+            BBBIO_PWMSS_Setting(1 , 50.0f ,SM_1_duty , SM_1_duty);
+	    BBBIO_PWMSS_Setting(2 , 50.0f ,4.2f , 4.2);
+
+
+//            BBBIO_PWMSS_Enable(0);
+//            BBBIO_PWMSS_Enable(1);
+//            BBBIO_PWMSS_Enable(2);
+
+            sleep(3);
+//            BBBIO_PWMSS_Disable(0);
+//            BBBIO_PWMSS_Disable(1);
+//            BBBIO_PWMSS_Disable(2);
+
+	}
+ */
+           BBBIO_PWMSS_Disable(0);
+            BBBIO_PWMSS_Disable(1);
+            BBBIO_PWMSS_Disable(2);
+
+	iolib_free();
+	return(0);
+}
+
+

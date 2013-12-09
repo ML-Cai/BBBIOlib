@@ -213,18 +213,26 @@ int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
 	    if (BBBIO_LIB_DBG)
 		printf("nearest TBPRD %d\n ",NearTBPRD);
 
-	    reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_TBCTL;
-	    *reg16 = TBCTL_CTRMODE_FREEZE | (NearCLKDIV <<10) | (NearHSPCLKDIV <<7);  	//setting divisor and freeze
+/*
+	    reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_DBRED ;
+	    *reg16 = 0;
 
-	    reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_TBPHS ;
+            reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_DBFED ;
+            *reg16 = 0;
+
+	    reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_DBCTL ;
+            *reg16 = 0;
+
+
+            reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_TBPHS ;
             *reg16=0;
             reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_TBCNT ;
             *reg16=0;
-
-            reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_CMPB;		// duty cycle B
+*/
+	    reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_CMPB;              // duty cycle B
             *reg16 =(unsigned short)((float)NearTBPRD * dutyB);
 
-            reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_CMPA;		// duty cycle A
+            reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_CMPA;              // duty cycle A
             *reg16 =(unsigned short)((float)NearTBPRD * dutyA);
 
             reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_TBPRD;
@@ -236,6 +244,10 @@ int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
 
 	    reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_AQCTLB;
             *reg16 = (1 <<1) | ( 1 <<8) ;   //ZRO : AQ_SET
+
+            reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_TBCTL;
+//          *reg16 = TBCTL_CTRMODE_FREEZE | (NearCLKDIV <<10) | (NearHSPCLKDIV <<7);    //setting divisor and freeze
+            *reg16 = TBCTL_CTRMODE_UP | (NearCLKDIV <<10) | (NearHSPCLKDIV <<7);
                                             //CBU : AQ_CLEAR
 
 	}
@@ -260,6 +272,15 @@ void BBBIO_PWMSS_Enable(unsigned int PWMID)
 	volatile unsigned short* reg16 ;
         reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_TBCTL;
 	*reg16 &= ~0x3;
+
+        reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_DBCTL ;
+        printf("DBCTL %X ,",*reg16);
+
+	reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_DBRED ;
+	printf("DBRED %X ,",*reg16);
+
+        reg16=(void*)epwm_ptr[PWMID] +BBBIO_EPWM_DBFED ;
+        printf("DBFED %X\n",*reg16);
 
 }
 //--------------------------------------------------------
