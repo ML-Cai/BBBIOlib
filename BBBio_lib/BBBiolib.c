@@ -67,10 +67,12 @@ const unsigned int p9_PortIDSet[]={
 // Memory Handle and Control Handle
 int memh=0;
 int ctrlh=0;
-volatile unsigned int *gpio_addr[4]={NULL, NULL, NULL, NULL};
-volatile unsigned int *ctrl_addr=NULL;
-volatile unsigned int *cm_per_addr=NULL;
-volatile unsigned int *cm_wkup_addr=NULL ;
+volatile unsigned int *gpio_addr[4]	={NULL, NULL, NULL, NULL};
+volatile unsigned int *ctrl_addr	=NULL;
+volatile unsigned int *cm_per_addr	=NULL;
+volatile unsigned int *cm_wkup_addr	=NULL ;
+extern volatile unsigned int *pwmss_ptr[3];
+extern volatile unsigned int *epwm_ptr[3];
 
 // pointer to const Port set and Port ID set array
 char* PortSet_ptr[2];
@@ -135,6 +137,9 @@ iolib_init(void)
 	    if (BBBIO_LIB_DBG) printf("iolib_init: control module mmap failure!\n");
 		return -1;
 	}
+
+	BBBIO_PWM_Init();
+
 	return 0;
 }
 //-----------------------------------------------------------------------------------------------

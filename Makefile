@@ -7,10 +7,14 @@ LIBRARIES = BBBio
 
 all : libBBBio.a
 
-libBBBio.a : ${LIB_PATH}BBBiolib.c ${LIB_PATH}BBBiolib.h
+libBBBio.a : ${LIB_PATH}BBBiolib.c ${LIB_PATH}BBBiolib.h libBBBio_PWMSS.o
 	gcc -c ${LIB_PATH}BBBiolib.c -o ${LIB_PATH}BBBiolib.o
-	ar -rs ${LIB_PATH}libBBBio.a ${LIB_PATH}BBBiolib.o
+	ar -rs ${LIB_PATH}libBBBio.a ${LIB_PATH}BBBiolib.o ${LIB_PATH}BBBiolib_PWMSS.o
 	cp ${LIB_PATH}libBBBio.a ./
+
+libBBBio_PWMSS.o : ${LIB_PATH}BBBiolib_PWMSS.c ${LIB_PATH}BBBiolib_PWMSS.h
+	gcc -c ${LIB_PATH}BBBiolib_PWMSS.c -o ${LIB_PATH}BBBiolib_PWMSS.o
+
 
 #---------------------------------------------------
 # Demo
@@ -40,7 +44,9 @@ DEBOUNCING : ${DEMO_PATH}Demo_Debouncing/Debouncing.c libBBBio.a
 4x4keypad : ${DEMO_PATH}Demo_4x4keypad/4x4keypad.c libBBBio.a
 	gcc -o 4x4keypad ${DEMO_PATH}Demo_4x4keypad/4x4keypad.c -L ${LIB_PATH} -lBBBio
 
-
+PWM : ${DEMO_PATH}Demo_PWM/PWM.c libBBBio.a
+	gcc -o PWM ${DEMO_PATH}Demo_PWM/PWM.c -L ${LIB_PATH} -lBBBio
+	
 #---------------------------------------------------
 # toolkit 
 #---------------------------------------------------
@@ -54,5 +60,5 @@ EP_STATUS : ${TOOLKIT_PATH}Toolkit_EP_Status/EP_status.c libBBBio.a
 
 .PHONY: clean
 clean :
-	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO Debouncing 4x4keypad EP_status
+	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_CLK_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO Debouncing 4x4keypad EP_status PWM
 

@@ -17,6 +17,9 @@
 #ifndef _BBBIOLIB_H_
 #define _BBBIOLIB_H_
 
+
+#include "BBBiolib_PWMSS.h"
+
 #define BBBIO_LIB_DBG 0
 #define BBBIO_DIR_IN 0
 #define BBBIO_DIR_OUT 1
@@ -35,7 +38,7 @@
 #define BBBIO_CONTROL_MODULE 0x44e10000
 #define BBBIO_CONTROL_LEN 0x2000
 
-// register offset
+// register offset (not really address offset)
 #define BBBIO_EXPANSION_HEADER_GND		0xF0000000
 #define BBBIO_EXPANSION_HEADER_DC_33V		0xF0000001
 #define BBBIO_EXPANSION_HEADER_VDD_5V		0xF0000002
@@ -54,6 +57,7 @@
 #define BBBIO_EXPANSION_HEADER_UNKNOW           0xF000000F
 
 #define BBBIO_CONTROL_STATUS	0x40
+#define BBBIO_PWMSS_CTRL	0x664
 #define BBBIO_CONF_GPMC_AD0	0x800
 #define BBBIO_CONF_GPMC_AD1	0x804
 #define BBBIO_CONF_GPMC_AD2	0x808
@@ -172,16 +176,60 @@
 #define BBBIO_CONF_TCK		0x9DC
 
 
-// ***************************************************************
-// PWMSS Registers
-/*
+/* ***************************************************************
+ * PWMSS Registers
+ *
+ * @Source : AM335x Technical Reference Manual ,page 1991
+ *           Table 15-5. PWMSS REGISTERS
+ *
 */
-#define BBBIO_PWMSS_ADDR
 
-#define BBBIO_PWMSS_ADDR_IDVER		0x0
-#define BBBIO_PWMSS_ADDR_SYSCONFIG	0x4
-#define BBBIO_PWMSS_ADDR_CLKCONFIG	0x8
-#define BBBIO_PWMSS_ADDR_CLKSTATUS	0xC
+#define BBBIO_PWMSS0_ADDR		0x48300000
+#define BBBIO_PWMSS1_ADDR		0x48302000
+#define BBBIO_PWMSS2_ADDR       	0x48304000
+#define BBBIO_PWMSS_LEN         	0x1000
+
+#define BBBIO_PWMSS_IDVER		0x0
+#define BBBIO_PWMSS_SYSCONFIG	0x4
+#define BBBIO_PWMSS_CLKCONFIG	0x8
+#define BBBIO_PWMSS_CLKSTATUS	0xC
+
+
+/* ***************************************************************
+ * EWMSS Registers
+ *
+ * @Source : AM335x Technical Reference Manual ,page 2084
+ *           Table 15-58. EPWM REGISTERS
+ *
+*/
+
+//#define BBBIO_EPWM0_ADDR	0x48300200
+//#define BBBIO_EPWM1_ADDR        0x48302200
+//#define BBBIO_EPWM2_ADDR        0x48304200
+//#define BBBIO_EPWM_LEN		0x60
+
+#define BBBIO_EPWM_TBCTL	0x0
+#define BBBIO_EPWM_TBSTS	0x2
+#define BBBIO_EPWM_TBPHSHR	0x4
+#define BBBIO_EPWM_TBPHS	0x6
+
+#define BBBIO_EPWM_TBCNT	0x8
+
+#define BBBIO_EPWM_TBPRD	0xA
+#define BBBIO_EPWM_CMPCTL	0xE
+#define BBBIO_EPWM_CMPAHR	0x10
+
+#define BBBIO_EPWM_CMPA		0x12
+#define BBBIO_EPWM_CMPB		0x14
+
+#define BBBIO_EPWM_AQCTLA	0x16
+#define BBBIO_EPWM_AQCTLB	0x18
+#define BBBIO_EPWM_AQSFRC	0x1A
+#define BBBIO_EPWM_AQCSFRC	0x1C
+#define BBBIO_EPWM_DBCTL	0x1E
+#define BBBIO_EPWM_DBRED	0x20
+#define BBBIO_EPWM_DBFED	0x22
+
 
 
 

@@ -11,7 +11,7 @@
 
 /include/ "am335x-bone-common.dtsi"
 
-/include/ "am335x-boneblack_epwmss0.dtsi"
+/include/ "am335x-boneblack_epwmss_all.dtsi"
 
 &am33xx_pinmux {
 	rstctl_pins: pinmux_rstctl_pins {

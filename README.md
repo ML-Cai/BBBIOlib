@@ -19,6 +19,8 @@ Simple C I/O library of Beaglebone balck
 
 	V2.5	December.7  2013 - change directory architecture ,add Demo/ and Toolkit/ directory .
 
+	V2.6	December.9  2013 - add simple ePWM module control function in am335x
+
 =============================================================================================
 
 this library support simple I/O for beaglebone black ,using C .
@@ -57,7 +59,7 @@ in Demo_* directory include some demo using this library ,each circuit layout an
                 # make EP_STATUS
 
 
-**Dts : **
+**Dts :**
 
 In BBB , the default pin mux mode is 7 , as GPIO mode , 
 
@@ -75,22 +77,28 @@ so i try to using dtsi file to setting the pinmux mode .
 
 	http://blog.pignology.net/2013/05/getting-uart2-devttyo1-working-on.html
 
+accroding this blog , i add some dts file for pin mux .
 	
-	**support Dts list :**
+**Dts list :**
 		
-		**am335x-boneblack_epwmss0.dtsi : **
+	am335x-boneblack_epwmss_all.dtsi :
 
-			enable epwmss0 / ehhrpwm0 , change P9_21/P9_22 pin mux as ehhrpwm0A/ehhrpwm0B .
+		enable epwmss0~2 / ehhrpwm0~2 , if you just nedd some of tham ,
+
+		please remove unecessary part of epwmss and ehhrpwm .
+
+		if epwmss is disable , ehhrpwm is disable too.
+
 
 **Demo List :**
 
-	**LED demo :**
+	LED demo :
 
 		using LED and Switch to control basic I/O .
 
 		# make LED
 
-	**LED_GPIO demo :**
+	LED_GPIO demo :
 
 		Switch on DIP swtich , the corresponding LED will be glittered .
 
@@ -99,13 +107,13 @@ so i try to using dtsi file to setting the pinmux mode .
 		# make LED_GPIO
 
 
-	**ADT7301 demo :**
+	ADT7301 demo :
 
 		using ADT7301 IC to get temperature data , an simple demo for SPI
 
 		# make ADT7301
 
-	**Seven-Segment Array Display demo :**
+	Seven-Segment Array Display demo :
 
 		using F5648RS Seven-Segment to display number . this demo is shows a method about how to enable GPIO2 .
 
@@ -117,13 +125,13 @@ so i try to using dtsi file to setting the pinmux mode .
 
 			http://www.logicsupply.com/blog/2013/07/18/disabling-the-beaglebone-black-hdmi-cape/ 
 
-	**Ultrasonic Range sensor 28015 Demo:**
+	Ultrasonic Range sensor 28015 Demo:
 
 		simple demo fo Ultrasonic Sensor 28015 , include 28015 datasheet.
 
 		# make 28015
 
-	**Debouncing Demo :**
+	Debouncing Demo :
 
 		this demo show an simple demo for Buttom Debouncing , using AM335x's debouncing unit.
 
@@ -131,10 +139,18 @@ so i try to using dtsi file to setting the pinmux mode .
 
 		# make DEBOUNCING
 		
-	**4x4 keypad Demo :**
+	4x4 keypad Demo :
 
 		simple keypad scanner programming for 4x4 keypad, it's an example for BBBIO_GPIO_ prefix function .
 
 		this demo express how to using BBBIO_GPIO_ prefix funcion to control whole GPIO .
 
 		# make 4x4keypad
+
+	PWM Demo :
+
+		express hot to using the BBBIO_PWMSS_ prefix function , this demo generate 50HZ output to epwm0A and epwm0B ,
+
+		and the duty of epwm0A is 50% , 25% for epwm0B , run 10s .
+
+		# make PWM
