@@ -154,3 +154,13 @@ accroding this blog , i add some dts file for pin mux .
 		and the duty of epwm0A is 50% , 25% for epwm0B , run 10s .
 
 		# make PWM
+
+	Servo Motor Demo :
+
+		This demo express how to control Servo Motor , using ePWM module in beaglebone black .
+
+		using ePWM0A for signal .
+
+		Demo Video : http://www.youtube.com/watch?v=xbuMTBIEgEc&list=HL1386612017&feature=mh_lolz
+
+		# make SMOTOR

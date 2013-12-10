@@ -127,7 +127,6 @@ int BBBIO_PWMSS_Status(unsigned int PWMID)
  *										// duty cycle is 50% for ePWM0A , 25% for ePWM0B
  */
 
-
 int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
 {
 	int param_error=1;

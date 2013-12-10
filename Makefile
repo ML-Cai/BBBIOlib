@@ -28,14 +28,17 @@ LED : ${DEMO_PATH}Demo_LED/LED.c libBBBio.a
 ADT7301 : ${DEMO_PATH}Demo_ADT7301/ADT7301.c libBBBio.a
 	gcc -o ADT7301 ${DEMO_PATH}Demo_ADT7301/ADT7301.c -L ${LIB_PATH} -lBBBio
 
+ADXL345 :  ${DEMO_PATH}Demo_ADXL345/ADXL345.c libBBBio.a
+	gcc -o ADXL345 ${DEMO_PATH}Demo_ADXL345/ADXL345.c -L ${LIB_PATH} -lBBBio
+
 SEVEN_SCAN : ${DEMO_PATH}Demo_SevenScan/SevenScan.c libBBBio.a
 	gcc -o SevenScan ${DEMO_PATH}Demo_SevenScan/SevenScan.c  -L ${LIB_PATH} -lBBBio
 
 28015 :  ${DEMO_PATH}Demo_Ultrasonic28015/Ultrasonic28015.c libBBBio.a
 	gcc -o Ultrasonic28015 ${DEMO_PATH}Demo_Ultrasonic28015/Ultrasonic28015.c -L ${LIB_PATH} -lBBBio
 
-SMOTOR : ${DEMO_PATH}Demo_ServerMotor/ServerMotor.c libBBBio.a
-	gcc -o SMOTOR ${DEMO_PATH}Demo_ServerMotor/ServerMotor.c -L ${LIB_PATH} -lBBBio
+SMOTOR : ${DEMO_PATH}Demo_ServoMotor/ServoMotor.c libBBBio.a
+	gcc -o SMOTOR ${DEMO_PATH}Demo_ServoMotor/ServoMotor.c -L ${LIB_PATH} -lBBBio
 
 LED_GPIO : ${DEMO_PATH}Demo_LED_GPIO/LED_GPIO.c libBBBio.a
 	gcc -o LED_GPIO ${DEMO_PATH}Demo_LED_GPIO/LED_GPIO.c -L ${LIB_PATH} -lBBBio
@@ -48,7 +51,10 @@ DEBOUNCING : ${DEMO_PATH}Demo_Debouncing/Debouncing.c libBBBio.a
 
 PWM : ${DEMO_PATH}Demo_PWM/PWM.c libBBBio.a
 	gcc -o PWM ${DEMO_PATH}Demo_PWM/PWM.c -L ${LIB_PATH} -lBBBio
-	
+
+BMOTOR : ${DEMO_PATH}Demo_BrushlessMotor/BrushlessMotor.c libBBBio.a
+	 gcc -o BMOTOR ${DEMO_PATH}Demo_BrushlessMotor/BrushlessMotor.c -L ${LIB_PATH} -lBBBio
+
 #---------------------------------------------------
 # toolkit 
 #---------------------------------------------------
