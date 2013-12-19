@@ -21,6 +21,8 @@ Simple C I/O library of Beaglebone balck
 
 	V2.6	December.9  2013 - add simple ePWM module control function in am335x
 
+	V2.7	December.20 2013 - add simple McSPI control function .
+
 =============================================================================================
 
 this library support simple I/O for beaglebone black ,using C .
@@ -109,7 +111,7 @@ accroding this blog , i add some dts file for pin mux .
 
 	ADT7301 demo :
 
-		using ADT7301 IC to get temperature data , an simple demo for SPI
+		using ADT7301 IC to get temperature data , an simple demo for SPI , using AM335x McSPI module
 
 		# make ADT7301
 

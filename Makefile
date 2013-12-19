@@ -9,14 +9,16 @@ LIBRARIES = BBBio
 
 all : libBBBio.a
 
-libBBBio.a : ${LIB_PATH}BBBiolib.c ${LIB_PATH}BBBiolib.h libBBBio_PWMSS.o
+libBBBio.a : ${LIB_PATH}BBBiolib.c ${LIB_PATH}BBBiolib.h libBBBio_PWMSS.o libBBBio_McSPI.o
 	gcc -c ${LIB_PATH}BBBiolib.c -o ${LIB_PATH}BBBiolib.o
-	ar -rs ${LIB_PATH}libBBBio.a ${LIB_PATH}BBBiolib.o ${LIB_PATH}BBBiolib_PWMSS.o
+	ar -rs ${LIB_PATH}libBBBio.a ${LIB_PATH}BBBiolib.o ${LIB_PATH}BBBiolib_PWMSS.o ${LIB_PATH}BBBiolib_McSPI.o
 	cp ${LIB_PATH}libBBBio.a ./
 
 libBBBio_PWMSS.o : ${LIB_PATH}BBBiolib_PWMSS.c ${LIB_PATH}BBBiolib_PWMSS.h
 	gcc -c ${LIB_PATH}BBBiolib_PWMSS.c -o ${LIB_PATH}BBBiolib_PWMSS.o
 
+libBBBio_McSPI.o : ${LIB_PATH}BBBiolib_McSPI.c ${LIB_PATH}BBBiolib_PWMSS.h
+	gcc -c ${LIB_PATH}BBBiolib_McSPI.c -o ${LIB_PATH}BBBiolib_McSPI.o
 
 #---------------------------------------------------
 # Demo
@@ -71,10 +73,10 @@ EP_STATUS : ${TOOLKIT_PATH}Toolkit_EP_Status/EP_status.c libBBBio.a
 #---------------------------------------------------
 
 RA : ${LAB_PATH}Lab_Robot_Arm/Robot_Arm.c libBBBio.a
-	gcc -o RA  ${LAB_PATH}Lab_Robot_Arm/Robot_Arm.c -L ${LIB_PATH} -lBBBio -pthread
+	gcc -o RA  ${LAB_PATH}Lab_Robot_Arm/Robot_Arm.c -L ${LIB_PATH} -lBBBio -pthread -lm
 
 
 .PHONY: clean
 clean :
-	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_CLK_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO Debouncing 4x4keypad EP_status PWM
+	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_CLK_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO Debouncing 4x4keypad EP_status PWM RA
 

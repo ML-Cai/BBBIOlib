@@ -31,7 +31,7 @@ volatile unsigned int *eqep_ptr[3]      ={NULL, NULL, NULL} ;
 /*********************************
  PWM init
  *******************************
- * iolib_init will run this function automatically 
+ * iolib_init will run this function automatically
  *
  *      @return         : 1 for success , 0 for failed
  *
@@ -116,7 +116,7 @@ int BBBIO_PWMSS_Status(unsigned int PWMID)
  PWMSS setting
  *******************************
  * set pluse rgument of epwm module
- *      @param PWMID    : EPWMSS number , 0~3
+ *      @param PWMID    : EPWMSS number , 0~2
  *      @param HZ    	: pluse HZ
  *      @param dutyA    : Duty Cycle in ePWM A
  *      @param dutyB    : Duty Cycle in ePWM B

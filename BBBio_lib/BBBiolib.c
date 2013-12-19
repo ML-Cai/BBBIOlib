@@ -140,6 +140,8 @@ iolib_init(void)
 
 	BBBIO_PWM_Init();
 
+
+	BBBIO_McSPI_Init();
 	return 0;
 }
 //-----------------------------------------------------------------------------------------------
@@ -471,22 +473,15 @@ BBBIO_sys_Expansion_Header_status(unsigned int port)
 
 	for(i=0 ;i< 46 ; i++)
  	{
-	    if(ExpHeader_MODE0[port][i] &0xF0000000)
+	    if(ExpHeader_MODE0[port][i] &0xF0000000)	// VCC /GND .........
 	    {
 		printf("P%d_%2d : \t%s\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t| P%d_%2d\n" ,port+8 ,i+1 ,
 							&extra_status[ExpHeader_MODE0[port][i] &0x0f][0] ,
 							port+8 ,i+1);
 	    }
-	    else
+	    else					// functional pins
 	    {
 	    	reg =(void*)ctrl_addr + ExpHeader_MODE0[port][i] ;
-
-		if((i+2) == 46)
-                {
-                    *reg &= ~0x08 ;
-                }
-
-
             	reg_value = *reg ;
 
 		v_SLEWCTRL = reg_value>>6 ;
@@ -534,12 +529,8 @@ int BBBIO_sys_pin_mux(unsigned int port ,unsigned int pin)
         pin -=1 ;
 
 	reg =(void*)ctrl_addr + ExpHeader_MODE0[port][pin] ;
-
-	*reg |= 0x8 ;	//enable pulldown
-	*reg &= ~0x4;
-	printf("OK\n");
+	printf("pin_mux %d %d ,%X\n",port+8 ,pin+1 ,*reg);
 }
-
 
 //-----------------------------------------------------------------------------------------------
 /*********************************
@@ -669,6 +660,7 @@ int  BBBIO_sys_Disable_Debouncing(unsigned int port ,unsigned int pin ,unsigned 
         reg = (void*)gpio_addr[PortSet_ptr[port][pin]] +BBBIO_GPIO_DEBOUNCENABLE ;
         *reg &= ~PortIDSet_ptr[port][pin] ;
 
+	// setting Debouncing time
       	reg = (void *)gpio_addr[PortSet_ptr[port][pin]] +BBBIO_GPIO_DEBOUNCINGTIME ;
       	*reg = GDB_time ;
 

@@ -17,12 +17,24 @@
 #ifndef _BBBIOLIB_H_
 #define _BBBIOLIB_H_
 
-
 #include "BBBiolib_PWMSS.h"
+#include "BBBiolib_McSPI.h"
 
-#define BBBIO_LIB_DBG 0
+#define BBBIO_LIB_DBG 1
 #define BBBIO_DIR_IN 0
 #define BBBIO_DIR_OUT 1
+
+
+// ***************************************************************
+
+#define BBBIO_MCSPI0_ADDR                      	0x48030000
+#define BBBIO_MCSPI1_ADDR			0x481A0000
+#define BBBIO_MCSPI_LEN				0x1000
+
+
+
+
+// ***************************************************************
 
 // enable pinmux functionality
 // not implemented today
@@ -249,6 +261,9 @@
 #define BBBIO_CM_PER_EPWMSS0_CLKCTRL	0xD4
 #define BBBIO_CM_PER_EPWMSS1_CLKCTRL	0xCC
 #define BBBIO_CM_PER_EPWMSS2_CLKCTRL	0xD8
+#define BBBIO_CM_PER_SPI0_CLKCTRL	0x4C
+#define BBBIO_CM_PER_SPI1_CLKCTRL       0x50
+
 
 // ***************************************************************
 // Clock Module Wakeup Registers
