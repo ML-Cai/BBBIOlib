@@ -38,6 +38,8 @@
 
 #define BBBIO_CM_PER_SPI1_CLKCTRL_IDLEST_MASK	(0x3 <<16)
 #define BBBIO_MCSPI_GET_CHSTAT_EOT(a)			((a&0x04)>>2)
+#define BBBIO_MCSPI_GET_CHSTAT_TXS(a)                   ((a&0x02)>>1)
+#define BBBIO_MCSPI_GET_CHSTAT_RXS(a)                   (a&0x01)
 //-----------------------------------------------------------------------------------------------
 
 #define McSPI_TxRx_Tx		0x01
@@ -51,9 +53,8 @@ struct BBBIO_McSPI_TxRx_struct
 };
 
 // Channel struct
-#define McSPI_CH_IDLE	0x1
-#define McSPI_CH_WOT	0x2		// waiting of transmit
-#define McSPI_CH_EOT	0x4		// end of transmit
+#define McSPI_CH_ENABLE		0x01
+#define McSPI_CH_DISABLE	0x02
 
 struct BBBIO_McSPI_CH_struct
 {
@@ -86,7 +87,7 @@ struct BBBIO_McSPI_struct McSPI_Module[BBBIO_MCSPI_ARG_MODULE_COUNT] ={0} ;
 //-----------------------------------------------------------------------------------------------
 inline void write_reg(volatile void *reg_base ,unsigned int offset ,unsigned int data)
 {
-	*((volatile unsigned int* )(reg_base+offset)) = data ;
+	*((volatile unsigned int* )(reg_base+offset)) = data;
 }
 //-----------------------------------------------------------------------------------------------
 inline unsigned int read_reg(volatile void *reg_base ,unsigned int offset)
@@ -136,52 +137,55 @@ unsigned int BBBIO_McSPI_Rx(unsigned int McSPI_ID ,unsigned int channel )
 // McSPI module work
 int BBBIO_McSPI_work(unsigned int McSPI_ID)
 {
-	unsigned int chn ;
+	unsigned int chn =0;
 	unsigned int chn_offset =0;
 	unsigned int reg_value ;
 
 	if(McSPI_Module[McSPI_ID].CM_PER_enable)	// check CM_PER enable status, or it may caue "Bus error" signal message.
 	{
 		struct BBBIO_McSPI_CH_struct *CH_ptr = &McSPI_Module[McSPI_ID].CH[0] ;
-
 		for(chn=0 ; chn<BBBIO_MCSPI_ARG_CHANNEL_COUNT ; chn++)
 		{
-			chn_offset = chn * 0x14 ;
-
-			write_reg(mcspi_ptr[McSPI_ID] ,
-					  BBBIO_MCSPI_CH0CTRL + chn_offset ,
-					  1);// channel enable
-
-			// need transform data
-			if(McSPI_Module[McSPI_ID].CH[chn].TxRx.flag & McSPI_TxRx_Tx)
+			if(McSPI_Module[McSPI_ID].CH[chn].status &McSPI_CH_ENABLE)
 			{
+				chn_offset = chn * 0x14 ;
+
+	                        write_reg(mcspi_ptr[McSPI_ID] ,
+        	                          BBBIO_MCSPI_CH0CTRL + chn_offset ,
+                	                  1);// channel enable
+
+				// need transform data
+				if(McSPI_Module[McSPI_ID].CH[chn].TxRx.flag & McSPI_TxRx_Tx)
+				{
+					write_reg(mcspi_ptr[McSPI_ID] ,
+							  BBBIO_MCSPI_TX0 +chn_offset ,
+							  McSPI_Module[McSPI_ID].CH[chn].TxRx.Tx );
+				}
+				else	// must set a dummy data in Tx reigster of receive only mode .
+				{
+					write_reg(mcspi_ptr[McSPI_ID] ,
+							  BBBIO_MCSPI_TX0 +chn_offset ,
+							  0);
+				}
+
+				// waiting for EOT ,not support interrupt yet , so it will cause waiting
+				reg_value =0;
+                	        while( !BBBIO_MCSPI_GET_CHSTAT_EOT(reg_value))
+                       	 	{
+                        	        reg_value = read_reg(mcspi_ptr[McSPI_ID] ,BBBIO_MCSPI_CH0STAT +chn_offset);
+                                	sched_yield();
+                        	}
+
+				// need receive data
+				if(McSPI_Module[McSPI_ID].CH[chn].TxRx.flag & McSPI_TxRx_Rx)
+				{
+					McSPI_Module[McSPI_ID].CH[chn].TxRx.Rx = read_reg(mcspi_ptr[McSPI_ID] ,BBBIO_MCSPI_RX0 +chn_offset);
+				}
+
 				write_reg(mcspi_ptr[McSPI_ID] ,
-						  BBBIO_MCSPI_TX0 +chn_offset ,
-						  McSPI_Module[McSPI_ID].CH[chn].TxRx.Tx );
+						  BBBIO_MCSPI_CH0CTRL + chn_offset ,
+						  0);   // channel disable
 			}
-			else	// must set a dummy data in Tx reigster of receive only mode .
-			{
-				write_reg(mcspi_ptr[McSPI_ID] ,
-						  BBBIO_MCSPI_TX0 +chn_offset ,
-						  0);
-			}
-			// waiting for EOT ,not support interrupt yet , so it will cause waiting
-			reg_value =0;
-			while( !BBBIO_MCSPI_GET_CHSTAT_EOT(reg_value))
-			{
-				reg_value = read_reg(mcspi_ptr[McSPI_ID] ,BBBIO_MCSPI_CH0STAT +chn_offset);
-				sched_yield();
-			}
-
-			// need receive data
-			if(McSPI_Module[McSPI_ID].CH[chn].TxRx.flag & McSPI_TxRx_Rx)
-			{
-				McSPI_Module[McSPI_ID].CH[chn].TxRx.Rx = read_reg(mcspi_ptr[McSPI_ID] ,BBBIO_MCSPI_RX0 +chn_offset);
-			}
-
-			write_reg(mcspi_ptr[McSPI_ID] ,
-					  BBBIO_MCSPI_CH0CTRL + chn_offset ,
-					  0);   // channel disable
 		}
 	}
 	else
@@ -206,20 +210,25 @@ int BBBIO_McSPI_Setting(unsigned int McSPI_ID ,
 
 	write_reg(mcspi_ptr[McSPI_ID] ,
 			  BBBIO_MCSPI_CH0CTRL + chn_offset ,
-			  0);   // channel disable       
+			  0);   // channel disable
 
 	write_reg(mcspi_ptr[McSPI_ID] ,
 			  BBBIO_MCSPI_MODULCTRL ,
-			  MS <<2);   
+			  MS <<2);
 
-	write_reg(mcspi_ptr[McSPI_ID] ,
+ 	write_reg(mcspi_ptr[McSPI_ID] ,
 			  BBBIO_MCSPI_CH0CONF + chn_offset ,
-			  DataDir <<16 | TRM <<12 | (WL-1) << 7 | EPOL<<6 | CLK_div <<2 | CLKmode); 
+			  DataDir <<16 | TRM <<12 | (WL-1) << 7 | EPOL<<6 | CLK_div <<2 | CLKmode);
 
 	if(TRM != BBBIO_McSPI_Tx_Only)
 		McSPI_Module[McSPI_ID].CH[channel].TxRx.flag |= McSPI_TxRx_Rx ;
 
-
+        if(TRM != BBBIO_McSPI_Rx_Only)
+	{
+                McSPI_Module[McSPI_ID].CH[channel].TxRx.flag |= McSPI_TxRx_Tx ;
+		McSPI_Module[McSPI_ID].CH[channel].TxRx.Tx =0;
+	}
+	McSPI_Module[McSPI_ID].CH[channel].status |=McSPI_CH_ENABLE;
 }
 //-----------------------------------------------------------------------------------------------
 #define BBBIO_McSPI_Enable(a) BBBIO_McSPI_CLK_set(a,1,0)
@@ -236,18 +245,40 @@ int BBBIO_McSPI_CLK_set(unsigned int McSPI_ID ,int enable , int idle)
 		return 0 ;
 	}
 
-	reg=(void*)cm_per_addr + CM_PER_McSPI[McSPI_ID] ;
-
 	if(enable)
-		*reg= 2;		// enable 
+	{
+		write_reg(cm_per_addr ,
+                          CM_PER_McSPI[McSPI_ID] ,
+                          0x3 <<16 | 0x2);
+		 McSPI_Module[McSPI_ID].CM_PER_enable =1;
+	}
 	else
-		*reg= 0;		// disable
+	{
+                write_reg(cm_per_addr ,
+                          CM_PER_McSPI[McSPI_ID] ,
+                          0);
+		 McSPI_Module[McSPI_ID].CM_PER_enable =0;
+	}
 
-	McSPI_Module[McSPI_ID].CM_PER_enable = *reg & ~BBBIO_CM_PER_SPI1_CLKCTRL_IDLEST_MASK; 
 	if (BBBIO_LIB_DBG) printf("BBBIO_McSPI_CLK_set: McSPI Module %d setting finish\n",McSPI_ID);
 
 	return 1 ;
 }
 //-----------------------------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------------------------
+int BBBIO_McSPI_Reset(unsigned int McSPI_ID)
+{
+	unsigned int reg_value ;
+
+	write_reg(mcspi_ptr[McSPI_ID] ,
+		  BBBIO_MCSPI_SYSCONFIG ,
+		  0x2 <<3 | 0x2);   // channel disable
+
+	reg_value =0;
+	while( !(reg_value & 0x1) )
+	{
+		reg_value = read_reg(mcspi_ptr[McSPI_ID] ,BBBIO_MCSPI_SYSSTATUS);
+		sched_yield();
+	}
+	printf("Reset Finish\n");
+}

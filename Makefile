@@ -32,6 +32,9 @@ ADT7301 : ${DEMO_PATH}Demo_ADT7301/ADT7301.c libBBBio.a
 
 ADXL345 :  ${DEMO_PATH}Demo_ADXL345/ADXL345.c libBBBio.a
 	gcc -o ADXL345 ${DEMO_PATH}Demo_ADXL345/ADXL345.c -L ${LIB_PATH} -lBBBio
+ADXL345_NET :  ${DEMO_PATH}Demo_ADXL345/ADXL345_net.c libBBBio.a
+	gcc -o ADXL345 ${DEMO_PATH}Demo_ADXL345/ADXL345_net.c -L ${LIB_PATH} -lBBBio
+
 
 SEVEN_SCAN : ${DEMO_PATH}Demo_SevenScan/SevenScan.c libBBBio.a
 	gcc -o SevenScan ${DEMO_PATH}Demo_SevenScan/SevenScan.c  -L ${LIB_PATH} -lBBBio

@@ -52,5 +52,8 @@ int BBBIO_McSPI_Setting(unsigned int McSPI_ID ,
                         unsigned int EPOL ,
                         unsigned int DataDir ,          // IS/DPE1/DPE0         ,data0 Outpu    t data1 Input ,or data0 Input data1 Output
                         unsigned int WL);                        // WL           ,word length
+
+int BBBIO_McSPI_Reset(unsigned int McSPI_ID);
+
 //-------------------------------------------------------------------------
 #endif
