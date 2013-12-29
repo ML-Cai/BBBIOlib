@@ -27,19 +27,38 @@
 
 // ***************************************************************
 
-#define BBBIO_MCSPI0_ADDR                      	0x48030000
-#define BBBIO_MCSPI1_ADDR			0x481A0000
-#define BBBIO_MCSPI_LEN				0x1000
-
-
-
-
-// ***************************************************************
-
 // enable pinmux functionality
 // not implemented today
 #define BBBIO_PINMUX_EN 0
 
+
+#define BBBIO_PINMUX_SLEWCTRL	(1<<6)
+#define BBBIO_PINMUX_FAST_RATE	(BBBIO_PINMUX_SLEWCTRL | (0<<6)<<8)
+#define BBBIO_PINMUX_SLOW_RATE	(BBBIO_PINMUX_SLEWCTRL | (1<<6)<<8)
+
+#define BBBIO_PINMUX_RXACTIVE	(1<<5)
+#define BBBIO_PINMUX_RX_DISABLE	(BBBIO_PINMUX_RXACTIVE | (0<<5)<<8)
+#define BBBIO_PINMUX_RX_ENABLE	(BBBIO_PINMUX_RXACTIVE | (1<<5)<<8)
+
+#define BBBIO_PINMUX_PUTYPESEL	(1<<4)
+#define BBBIO_PINMUX_PULLDOWN	(BBBIO_PINMUX_PUTYPESEL | (0<<4)<<8)
+#define BBBIO_PINMUX_PULLUP	(BBBIO_PINMUX_PUTYPESEL | (1<<4)<<8)
+
+#define BBBIO_PINMUX_PUDEN	(1<<3)
+#define BBBIO_PINMUX_PULL_ENABLE	(BBBIO_PINMUX_PUDEN | (0<<3)<<8)
+#define BBBIO_PINMUX_PULL_DISABLE	(BBBIO_PINMUX_PUDEN | (1<<3)<<8)
+
+#define BBBIO_PINMUX_MODE	(0x7)
+#define BBBIO_PINMUX_MODE_0	(BBBIO_PINMUX_MODE | (0x0)<<8)
+#define BBBIO_PINMUX_MODE_1	(BBBIO_PINMUX_MODE | (0x1)<<8)
+#define BBBIO_PINMUX_MODE_2	(BBBIO_PINMUX_MODE | (0x2)<<8)
+#define BBBIO_PINMUX_MODE_3	(BBBIO_PINMUX_MODE | (0x3)<<8)
+#define BBBIO_PINMUX_MODE_4	(BBBIO_PINMUX_MODE | (0x4)<<8)
+#define BBBIO_PINMUX_MODE_5	(BBBIO_PINMUX_MODE | (0x5)<<8)
+#define BBBIO_PINMUX_MODE_6	(BBBIO_PINMUX_MODE | (0x6)<<8)
+#define BBBIO_PINMUX_MODE_7	(BBBIO_PINMUX_MODE | (0x7)<<8)
+
+int BBBIO_sys_pinmux_check(unsigned int port, unsigned int pin, unsigned int Cflag);
 // ***************************************************************
 // Control Module Registers
 /* @Source : AM335x Technical Reference Manual ,page 1123~1127
@@ -186,63 +205,6 @@
 #define BBBIO_CONF_TDI		0x9D4
 #define BBBIO_CONF_TDO		0x9D8
 #define BBBIO_CONF_TCK		0x9DC
-
-
-/* ***************************************************************
- * PWMSS Registers
- *
- * @Source : AM335x Technical Reference Manual ,page 1991
- *           Table 15-5. PWMSS REGISTERS
- *
-*/
-
-#define BBBIO_PWMSS0_ADDR		0x48300000
-#define BBBIO_PWMSS1_ADDR		0x48302000
-#define BBBIO_PWMSS2_ADDR       	0x48304000
-#define BBBIO_PWMSS_LEN         	0x1000
-
-#define BBBIO_PWMSS_IDVER		0x0
-#define BBBIO_PWMSS_SYSCONFIG	0x4
-#define BBBIO_PWMSS_CLKCONFIG	0x8
-#define BBBIO_PWMSS_CLKSTATUS	0xC
-
-
-/* ***************************************************************
- * EWMSS Registers
- *
- * @Source : AM335x Technical Reference Manual ,page 2084
- *           Table 15-58. EPWM REGISTERS
- *
-*/
-
-//#define BBBIO_EPWM0_ADDR	0x48300200
-//#define BBBIO_EPWM1_ADDR        0x48302200
-//#define BBBIO_EPWM2_ADDR        0x48304200
-//#define BBBIO_EPWM_LEN		0x60
-
-#define BBBIO_EPWM_TBCTL	0x0
-#define BBBIO_EPWM_TBSTS	0x2
-#define BBBIO_EPWM_TBPHSHR	0x4
-#define BBBIO_EPWM_TBPHS	0x6
-
-#define BBBIO_EPWM_TBCNT	0x8
-
-#define BBBIO_EPWM_TBPRD	0xA
-#define BBBIO_EPWM_CMPCTL	0xE
-#define BBBIO_EPWM_CMPAHR	0x10
-
-#define BBBIO_EPWM_CMPA		0x12
-#define BBBIO_EPWM_CMPB		0x14
-
-#define BBBIO_EPWM_AQCTLA	0x16
-#define BBBIO_EPWM_AQCTLB	0x18
-#define BBBIO_EPWM_AQSFRC	0x1A
-#define BBBIO_EPWM_AQCSFRC	0x1C
-#define BBBIO_EPWM_DBCTL	0x1E
-#define BBBIO_EPWM_DBRED	0x20
-#define BBBIO_EPWM_DBFED	0x22
-
-
 
 
 // ***************************************************************

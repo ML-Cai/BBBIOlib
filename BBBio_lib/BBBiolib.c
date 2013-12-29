@@ -70,7 +70,7 @@ const unsigned int p9_PortIDSet[]={0,	0,	0,	0,	0,	0,	0,	0,
 int memh=0;
 int ctrlh=0;
 volatile unsigned int *gpio_addr[4]	={NULL, NULL, NULL, NULL};
-volatile unsigned int *ctrl_addr	=NULL;
+volatile unsigned int *CM_ptr	=NULL;
 volatile unsigned int *cm_per_addr	=NULL;
 volatile unsigned int *cm_wkup_addr	=NULL ;
 extern volatile unsigned int *pwmss_ptr[3];
@@ -79,10 +79,11 @@ extern volatile unsigned int *epwm_ptr[3];
 /* pointer to const Port set and Port ID set array */
 char* PortSet_ptr[2];
 unsigned int* PortIDSet_ptr[2];
-//-----------------------------------------------------------------------------------------------
-// ********************************
-// Library Init
-// ********************************
+/*-----------------------------------------------------------------------------------------------
+ * ********************************
+ * Library Init
+ * ********************************
+*/
 int iolib_init(void)
 {
 	int i;
@@ -138,8 +139,8 @@ int iolib_init(void)
 	 *
 	 * Useless now , this register must be privigle mode .
 	 */
-	ctrl_addr = mmap(0, BBBIO_CONTROL_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, memh, BBBIO_CONTROL_MODULE);
-	if(ctrl_addr == MAP_FAILED) {
+	CM_ptr = mmap(0, BBBIO_CONTROL_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, memh, BBBIO_CONTROL_MODULE);
+	if(CM_ptr == MAP_FAILED) {
 #ifdef BBBIO_LIB_DBG
 		printf("iolib_init: control module mmap failure!\n");
 #endif
@@ -150,10 +151,11 @@ int iolib_init(void)
 	BBBIO_McSPI_Init();
 	return 0;
 }
-//-----------------------------------------------------------------------------------------------
-// ********************************
-// Library free
-// ********************************
+/*-----------------------------------------------------------------------------------------------
+ * ********************************
+ * Library free
+ * ********************************
+ */
 int iolib_free(void)
 {
 	if (memh!=0) {
@@ -161,17 +163,18 @@ int iolib_free(void)
 	}
 	return 0;
 }
-//-----------------------------------------------------------------------------------------------
-// ********************************
-// Set I/O direction (Input/Output)
-// ********************************
+/*-----------------------------------------------------------------------------------------------
+ * ********************************
+ * Set I/O direction (Input/Output)
+ * ********************************
+ */
 int iolib_setdir(char port, char pin, char dir)
 {
 	int i;
 	int param_error=0;			// parameter error
 	volatile unsigned int* reg;		// GPIO register
-	int reg_port = port -8;			// port number of register process 
-	int reg_pin = pin -1;			// pin id of register process 
+	int reg_port = port -8;			// port number of register process
+	int reg_pin = pin -1;			// pin id of register process
 
 	// sanity checks
 	if (memh == 0)
@@ -204,27 +207,27 @@ int iolib_setdir(char port, char pin, char dir)
 
 	return(0);
 }
-//-----------------------------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------------------------- */
 inline void pin_high(char port, char pin)
 {
 	*((unsigned int *)((void *)gpio_addr[PortSet_ptr[port-8][pin-1]]+BBBIO_GPIO_SETDATAOUT)) = PortIDSet_ptr[port-8][pin-1];
 }
-//-----------------------------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------------------------- */
 inline void pin_low(char port, char pin)
 {
 	*((unsigned int *)((void *)gpio_addr[PortSet_ptr[port-8][pin-1]]+BBBIO_GPIO_CLEARDATAOUT)) = PortIDSet_ptr[port-8][pin-1];
 }
-//-----------------------------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------------------------- */
 inline char is_high(char port, char pin)
 {
 	return ((*((unsigned int *)((void *)gpio_addr[PortSet_ptr[port-8][pin-1]]+BBBIO_GPIO_DATAIN)) & PortIDSet_ptr[port-8][pin-1])!=0);
 }
-//-----------------------------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------------------------- */
 inline char is_low(char port, char pin)
 {
 	return ((*((unsigned int *)((void *)gpio_addr[PortSet_ptr[port-8][pin-1]]+BBBIO_GPIO_DATAIN)) & PortIDSet_ptr[port-8][pin-1])==0);
 }
-//-----------------------------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------------------------- */
 int iolib_delay_ms(unsigned int msec)
 {
 	int ret;
@@ -476,7 +479,7 @@ void BBBIO_sys_Expansion_Header_status(unsigned int port)
 	    }
 	    else					// functional pins
 	    {
-	    	reg =(void*)ctrl_addr + ExpHeader_MODE0[port][i] ;
+	    	reg =(void*)CM_ptr + ExpHeader_MODE0[port][i] ;
             	reg_value = *reg ;
 
 		v_SLEWCTRL = reg_value>>6 ;
@@ -500,31 +503,100 @@ void BBBIO_sys_Expansion_Header_status(unsigned int port)
 // *********************************
 // no effect , don't use that!!
 // ********************************
-int BBBIO_sys_pin_mux(unsigned int port ,unsigned int pin)
+/*
+#define BBBIO_PINMUX_SLEWCTRL	(1<<6)
+#define BBBIO_PINMUX_FAST_RATE	(BBBIO_PINMUX_SLEWCTRL | (1<<6)<<8)
+#define BBBIO_PINMUX_SLOW_RATE	(BBBIO_PINMUX_SLEWCTRL | (0<<6)<<8)
+
+#define BBBIO_PINMUX_RXACTIVE	(1<<5)
+#define BBBIO_PINMUX_RX_DISABLE	(BBBIO_PINMUX_RXACTIVE | (1<<5)<<8)
+#define BBBIO_PINMUX_RX_ENABLE	(BBBIO_PINMUX_RXACTIVE | (0<<5)<<8)
+
+#define BBBIO_PINMUX_PUTYPESEL	(1<<4)
+#define BBBIO_PINMUX_PULLUP	(BBBIO_PINMUX_PUTYPESEL | (1<<4)<<8)
+#define BBBIO_PINMUX_PULLDOWN	(BBBIO_PINMUX_PUTYPESEL | (0<<4)<<8)
+
+#define BBBIO_PINMUX_PUDEN	(1<<3)
+#define BBBIO_PINMUX_PULL_ENABLE	(BBBIO_PINMUX_PUDEN | (1<<3)<<8)
+#define BBBIO_PINMUX_PULL_DISABLE	(BBBIO_PINMUX_PUDEN | (0<<3)<<8)
+
+#define BBBIO_PINMUX_MODE	(0x7)
+#define BBBIO_PINMUX_MODE_0	(BBBIO_PINMUX_MODE | (0x0)<<8)
+#define BBBIO_PINMUX_MODE_1	(BBBIO_PINMUX_MODE | (0x1)<<8)
+#define BBBIO_PINMUX_MODE_2	(BBBIO_PINMUX_MODE | (0x2)<<8)
+#define BBBIO_PINMUX_MODE_3	(BBBIO_PINMUX_MODE | (0x3)<<8)
+#define BBBIO_PINMUX_MODE_4	(BBBIO_PINMUX_MODE | (0x4)<<8)
+#define BBBIO_PINMUX_MODE_5	(BBBIO_PINMUX_MODE | (0x5)<<8)
+#define BBBIO_PINMUX_MODE_6	(BBBIO_PINMUX_MODE | (0x6)<<8)
+#define BBBIO_PINMUX_MODE_7	(BBBIO_PINMUX_MODE | (0x7)<<8)
+*/
+
+int BBBIO_sys_pinmux_check(unsigned int port, unsigned int pin, unsigned int Cflag )
 {
-	int param_error=0;
 	volatile unsigned int* reg;
+	unsigned int reg_value = 0;
+	unsigned int ret = 0;
+	unsigned int reg_tmp ;
+	unsigned int Cflag_tmp ;
 
- 	// sanity checks
-	if (memh==0)
-            param_error=1;
-        if ((port<8) || (port>9))               // if input is not port8 and port 9 , because BBB support P8/P9 Connector
-            param_error=1;
-        if ((pin<1) || (pin>46))                // if pin over/underflow , range : 1~46
-            param_error=1;
-        if (PortSet_ptr[port][pin]<0)   	// pass GND OR VCC (PortSet as -1)
-            param_error=1;
+	// sanity checks
+	if (memh == 0)
+		goto PARAM_ERROR ;
+	if ((port < 8) || (port > 9))               // if input is not port8 and port 9 , because BBB support P8/P9 Connector
+		goto PARAM_ERROR ;
+	if ((pin < 1) || (pin > 46))                // if pin over/underflow , range : 1~46
+		goto PARAM_ERROR ;
+	if (PortSet_ptr[port][pin] < 0)   	// pass GND OR VCC (PortSet as -1)
+		goto PARAM_ERROR ;
 
-        if (param_error)
-        {
-            if (BBBIO_LIB_DBG) printf("BBBIO_sys_pin_mux : parameter error!\n");
-            return -1 ;
-        }
-        port -=8 ;
-        pin -=1 ;
+	port -= 8;
+	pin -= 1;
 
-	reg =(void*)ctrl_addr + ExpHeader_MODE0[port][pin] ;
+	reg =(void *)CM_ptr + ExpHeader_MODE0[port][pin] ;
+	reg_value = *reg ;
 	printf("pin_mux %d %d ,%X\n",port+8 ,pin+1 ,*reg);
+
+	if(Cflag & BBBIO_PINMUX_SLEWCTRL && (ret == 0)) {
+		reg_tmp = reg_value & BBBIO_PINMUX_SLEWCTRL;
+		Cflag_tmp = (Cflag >> 8) & BBBIO_PINMUX_SLEWCTRL;
+		ret = reg_tmp ^ Cflag_tmp;
+		printf("1 %d , %X %X\n",ret, reg_tmp, Cflag_tmp);
+	}
+	if((Cflag & BBBIO_PINMUX_RXACTIVE) && (ret == 0)) {
+		reg_tmp = reg_value & BBBIO_PINMUX_RXACTIVE;
+		Cflag_tmp = (Cflag >> 8) & BBBIO_PINMUX_RXACTIVE;
+		ret = reg_tmp ^ Cflag_tmp;
+		printf("2 %d\n",ret);
+	}
+
+	if((Cflag & BBBIO_PINMUX_PUTYPESEL) && (ret == 0)) {
+		reg_tmp = reg_value & BBBIO_PINMUX_PUTYPESEL;
+		Cflag_tmp = (Cflag >> 8) & BBBIO_PINMUX_PUTYPESEL;
+		ret = reg_tmp ^ Cflag_tmp;
+		printf("3 %d\n",ret);
+	}
+
+	if((Cflag & BBBIO_PINMUX_PUDEN) && (ret == 0)) {
+		reg_tmp = reg_value & BBBIO_PINMUX_PUDEN;
+		Cflag_tmp = (Cflag >> 8) & BBBIO_PINMUX_PUDEN;
+		ret = reg_tmp ^ Cflag_tmp;
+		printf("4 %d\n",ret);
+	}
+
+	if((Cflag & BBBIO_PINMUX_MODE) && (ret == 0)) {
+		reg_tmp = reg_value & BBBIO_PINMUX_MODE;
+		Cflag_tmp = (Cflag >> 8) & BBBIO_PINMUX_MODE;
+		ret = reg_tmp ^ Cflag_tmp ;
+		printf("1 %d , %X %X\n",ret, reg_tmp, Cflag_tmp);
+	}
+
+	return !ret;
+
+PARAM_ERROR :
+#ifdef BBBIO_LIB_DBG
+	printf("BBBIO_sys_pin_mux_check : parameter error!\n");
+#endif
+	return 0;
 }
 
 //-----------------------------------------------------------------------------------------------

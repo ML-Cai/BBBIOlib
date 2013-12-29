@@ -27,7 +27,7 @@ Simple C I/O library of Beaglebone balck
 
 this library support simple I/O for beaglebone black ,using C .
 
-in Demo_* directory include some demo using this library ,each circuit layout and document in file directory .
+Demo Directory include some demo basic this library ,each circuit layout ,picture and document in file directory .
 
 
 **Hotw to use :**
@@ -42,36 +42,32 @@ in Demo_* directory include some demo using this library ,each circuit layout an
 
 **Toolkit List :**
 
-        **GPIO CLK Status toolkit :**
-
-                it's an utility to show GPIO clock module status of  GPIO0 /GPIO1 / GPIO2 / GPIO3 . 
+	GPIO CLK Status toolkit :
+		it's an utility to show GPIO clock module status of  GPIO0 /GPIO1 / GPIO2 / GPIO3 . 
 
 		Help for check GPIO clock module enable or not .
-	
+
 		if GPIO clock is disable ,access pin in that will cause **"bus error"** message .
 
 		# make GPIO_STATUS
 
-        **Expansion Header toolkit :**
-
-                it shows the "current" status of Expansion Header P8 and P9 ,
+	Expansion Header toolkit :
+		it shows the "current" status of Expansion Header P8 and P9 ,
 
 		include Pin mode , pull-high/low .... etc .
 
-                # make EP_STATUS
+		# make EP_STATUS
 
 
 **Dts :**
 
-In BBB , the default pin mux mode is 7 , as GPIO mode , 
+In Linux kernel 3.8 ,when BBB power on ,the default pin mux mode is 7 (as GPIO mode) , 
 
 if your device tree doesn't change the pin mux mode , the ePWM / SPI / I2C .. is unused .
 
-I mapped CONTROL_MODULE register via mmap and modify config register in offset 800h~E00h , 
+the register control pin mux mode is CONTROL_MODULE , but access this register need to be in privilege mode,
 
-but it has no effect , i conjecture this action must operat in kernel mode.
-
-and i also modify u-boot mux file , but it has no effect too.
+because that , BBBio doesn't control ths register .
 
 so i try to using dtsi file to setting the pinmux mode .
 	
