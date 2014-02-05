@@ -22,6 +22,9 @@
 #include <errno.h>
 #include <time.h>
 #include "BBBiolib.h"
+#include "BBBiolib_PWMSS.h"
+#include "BBBiolib_McSPI.h"
+#include "BBBiolib_ADCTSC.h"
 
 /* Memory mapping offset if GPIO , means the memory address of GPIOs */
 const unsigned int GPIO_AddressOffset[]={BBBIO_GPIO0_ADDR, BBBIO_GPIO1_ADDR, BBBIO_GPIO2_ADDR, BBBIO_GPIO3_ADDR};
@@ -149,6 +152,8 @@ int iolib_init(void)
 
 	BBBIO_PWM_Init();
 	BBBIO_McSPI_Init();
+	BBBIO_ADCTSC_Init();
+
 	return 0;
 }
 /*-----------------------------------------------------------------------------------------------
@@ -554,40 +559,34 @@ int BBBIO_sys_pinmux_check(unsigned int port, unsigned int pin, unsigned int Cfl
 
 	reg =(void *)CM_ptr + ExpHeader_MODE0[port][pin] ;
 	reg_value = *reg ;
-	printf("pin_mux %d %d ,%X\n",port+8 ,pin+1 ,*reg);
 
 	if(Cflag & BBBIO_PINMUX_SLEWCTRL && (ret == 0)) {
 		reg_tmp = reg_value & BBBIO_PINMUX_SLEWCTRL;
 		Cflag_tmp = (Cflag >> 8) & BBBIO_PINMUX_SLEWCTRL;
 		ret = reg_tmp ^ Cflag_tmp;
-		printf("1 %d , %X %X\n",ret, reg_tmp, Cflag_tmp);
 	}
 	if((Cflag & BBBIO_PINMUX_RXACTIVE) && (ret == 0)) {
 		reg_tmp = reg_value & BBBIO_PINMUX_RXACTIVE;
 		Cflag_tmp = (Cflag >> 8) & BBBIO_PINMUX_RXACTIVE;
 		ret = reg_tmp ^ Cflag_tmp;
-		printf("2 %d\n",ret);
 	}
 
 	if((Cflag & BBBIO_PINMUX_PUTYPESEL) && (ret == 0)) {
 		reg_tmp = reg_value & BBBIO_PINMUX_PUTYPESEL;
 		Cflag_tmp = (Cflag >> 8) & BBBIO_PINMUX_PUTYPESEL;
 		ret = reg_tmp ^ Cflag_tmp;
-		printf("3 %d\n",ret);
 	}
 
 	if((Cflag & BBBIO_PINMUX_PUDEN) && (ret == 0)) {
 		reg_tmp = reg_value & BBBIO_PINMUX_PUDEN;
 		Cflag_tmp = (Cflag >> 8) & BBBIO_PINMUX_PUDEN;
 		ret = reg_tmp ^ Cflag_tmp;
-		printf("4 %d\n",ret);
 	}
 
 	if((Cflag & BBBIO_PINMUX_MODE) && (ret == 0)) {
 		reg_tmp = reg_value & BBBIO_PINMUX_MODE;
 		Cflag_tmp = (Cflag >> 8) & BBBIO_PINMUX_MODE;
 		ret = reg_tmp ^ Cflag_tmp ;
-		printf("1 %d , %X %X\n",ret, reg_tmp, Cflag_tmp);
 	}
 
 	return !ret;

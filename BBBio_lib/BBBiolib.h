@@ -17,10 +17,7 @@
 #ifndef _BBBIOLIB_H_
 #define _BBBIOLIB_H_
 
-#include "BBBiolib_PWMSS.h"
-#include "BBBiolib_McSPI.h"
-
-#define BBBIO_LIB_DBG 1
+#define BBBIO_LIB_DBG
 #define BBBIO_DIR_IN 0
 #define BBBIO_DIR_OUT 1
 
@@ -238,6 +235,7 @@ int BBBIO_sys_pinmux_check(unsigned int port, unsigned int pin, unsigned int Cfl
 #define BBBIO_CM_WKUP_OFFSET_FROM_CM_PER	0x400		// for mapping alignment . BBBIO_CM_WKUP_ADDR is not aligned of page boundary in 4k page .
 #define BBBIO_CM_WKUP_LEN 			0x100
 #define BBBIO_CM_WKUP_GPIO0_CLKCTRL 		0x8		// This register manages the GPIO0 clocks 	, Section 8.1.12.2.3 ,page : 983.
+#define BBBIO_CM_WKUP_ADC_TSC_CLKCTRL		0xBC
 
 // ***************************************************************
 // AM335X GPIO memory mapping address

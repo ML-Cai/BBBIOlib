@@ -9,16 +9,19 @@ LIBRARIES = BBBio
 
 all : libBBBio.a
 
-libBBBio.a : ${LIB_PATH}BBBiolib.c ${LIB_PATH}BBBiolib.h libBBBio_PWMSS.o libBBBio_McSPI.o
+libBBBio.a : ${LIB_PATH}BBBiolib.c ${LIB_PATH}BBBiolib.h BBBiolib_PWMSS.o BBBiolib_McSPI.o BBBiolib_ADCTSC.o
 	gcc -c ${LIB_PATH}BBBiolib.c -o ${LIB_PATH}BBBiolib.o
-	ar -rs ${LIB_PATH}libBBBio.a ${LIB_PATH}BBBiolib.o ${LIB_PATH}BBBiolib_PWMSS.o ${LIB_PATH}BBBiolib_McSPI.o
+	ar -rs ${LIB_PATH}libBBBio.a ${LIB_PATH}BBBiolib.o ${LIB_PATH}BBBiolib_PWMSS.o ${LIB_PATH}BBBiolib_McSPI.o ${LIB_PATH}BBBiolib_ADCTSC.o
 	cp ${LIB_PATH}libBBBio.a ./
 
-libBBBio_PWMSS.o : ${LIB_PATH}BBBiolib_PWMSS.c ${LIB_PATH}BBBiolib_PWMSS.h
+BBBiolib_PWMSS.o : ${LIB_PATH}BBBiolib_PWMSS.c ${LIB_PATH}BBBiolib_PWMSS.h
 	gcc -c ${LIB_PATH}BBBiolib_PWMSS.c -o ${LIB_PATH}BBBiolib_PWMSS.o
 
-libBBBio_McSPI.o : ${LIB_PATH}BBBiolib_McSPI.c ${LIB_PATH}BBBiolib_PWMSS.h
+BBBiolib_McSPI.o : ${LIB_PATH}BBBiolib_McSPI.c ${LIB_PATH}BBBiolib_PWMSS.h
 	gcc -c ${LIB_PATH}BBBiolib_McSPI.c -o ${LIB_PATH}BBBiolib_McSPI.o
+
+BBBiolib_ADCTSC.o : ${LIB_PATH}BBBiolib_ADCTSC.c ${LIB_PATH}BBBiolib_ADCTSC.h
+	gcc -c ${LIB_PATH}BBBiolib_ADCTSC.c -o ${LIB_PATH}BBBiolib_ADCTSC.o
 
 #---------------------------------------------------
 # Demo
@@ -59,6 +62,9 @@ PWM : ${DEMO_PATH}Demo_PWM/PWM.c libBBBio.a
 
 BMOTOR : ${DEMO_PATH}Demo_BrushlessMotor/BrushlessMotor.c libBBBio.a
 	 gcc -o BMOTOR ${DEMO_PATH}Demo_BrushlessMotor/BrushlessMotor.c -L ${LIB_PATH} -lBBBio
+
+ADC : ${DEMO_PATH}Demo_ADC/ADC.c libBBBio.a
+	gcc -o ADC ${DEMO_PATH}Demo_ADC/ADC.c -L ${LIB_PATH} -lBBBio
 
 #---------------------------------------------------
 # toolkit 
