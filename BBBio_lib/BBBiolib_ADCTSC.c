@@ -91,14 +91,9 @@
 #define ADCRANGE_MAX_RANGE	0xFFF
 #define ADCRANGE_MIN_RANGE	0x000
 
-
-#define ADCTSC_FIFO_0	0x0
-#define ADCTSC_FIFO_1	0x1
-
 /* CTRL operator code */
 #define CTRL_ENABLE	0x1
 #define CTRL_STEP_ID_TAG	0x2
-
 
 
 /* step config */
@@ -115,6 +110,12 @@
 
 /* ----------------------------------------------------------------------------------------------- */
 /* struct definition */
+struct ADCTSC_FIFO_struct
+{
+	unsigned int *reg_count ;
+	unsigned int *reg_data ;
+	struct ADCTSC_FIFO_struct *next ;
+};
 
 struct ADCTSC_channel_struct
 {
@@ -141,6 +142,7 @@ struct ADCTSC_struct
 	unsigned int L_range;
 	unsigned int ClockDiv;	/* Clock divider , Default ADC clock :24MHz */
 	struct ADCTSC_channel_struct channel[8];
+	struct ADCTSC_FIFO_struct FIFO[2] ;
 };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -183,10 +185,9 @@ static int BBBIO_ADCTSC_set_range(int L_range, int H_range)
 /* ----------------------------------------------------------------------------------------------- */
 /* ADCTSC Channel status controller
  *
- */
-#define BBBIO_ADCTSC_channel_enable(A) BBBIO_ADCTSC_channel_status(A,1)
-#define BBBIO_ADCTSC_channel_disable(A)	BBBIO_ADCTSC_channel_status(A,0)
-
+ *	#define BBBIO_ADCTSC_channel_enable(A) BBBIO_ADCTSC_channel_status(A,1)
+ *	#define BBBIO_ADCTSC_channel_disable(A)	BBBIO_ADCTSC_channel_status(A,0)
+*/
 void BBBIO_ADCTSC_channel_status(int chn_ID ,int enable)
 {
 	unsigned int *reg = NULL;
@@ -208,6 +209,10 @@ void BBBIO_ADCTSC_channel_status(int chn_ID ,int enable)
 			reg = (void *)adctsc_ptr + ADCTSC_STEPENABLE;
 			*reg &= ~(0x0001 << (chn_ID+1));
 		}
+
+		/* Reset buffer counter*/
+		ADCTSC.channel[chn_ID].buffer_count = 0;
+		ADCTSC.channel[chn_ID].buffer_save_ptr = ADCTSC.channel[chn_ID].buffer;
 	}
 }
 
@@ -279,6 +284,8 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	int buf_count = 0;
 	int chn_ID =0;
 	struct ADCTSC_channel_struct *chn_ptr =NULL;
+	struct ADCTSC_FIFO_struct *FIFO_ptr = ADCTSC.FIFO;
+	int i ;
 
 	/* Start sample */
 	for(chn_ID = 0 ; chn_ID < ADCTSC_AIN_COUNT ; chn_ID++) {
@@ -291,20 +298,23 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	*reg_ctrl |= (CTRL_ENABLE | CTRL_STEP_ID_TAG);
 
 	/* waiting FIFO buffer fetch a data*/
-	reg_count = (void *)adctsc_ptr + ADCTSC_FIFO0COUNT;
-	reg_data = (void *)adctsc_ptr + ADCTSC_FIFO0DATA;
 	while(fetch_size>0) {
+		reg_count = FIFO_ptr->reg_count;
+		reg_data = FIFO_ptr->reg_data;
+
 		buf_count = *reg_count;
-		while(buf_count >0) {
+		if(buf_count > 0) fetch_size -- ;
+		for(i = 0 ; i < buf_count ; i++) {
 			buf_data = *reg_data;
 			chn_ID = (buf_data >> 16) & 0xF;
 			chn_ptr = &ADCTSC.channel[chn_ID];
-			*chn_ptr->buffer_save_ptr = buf_data & 0xFFF;
-			chn_ptr->buffer_count ++;
+			 *chn_ptr->buffer_save_ptr = buf_data & 0xFFF;
+			// *chn_ptr->buffer_save_ptr = buf_data;
 			chn_ptr->buffer_save_ptr++;
-			fetch_size --;
-			buf_count --;
+			chn_ptr->buffer_count ++;
 		}
+		/* switch to next FIFO */
+		FIFO_ptr = FIFO_ptr->next;
 	}
 
 
@@ -332,6 +342,9 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 int BBBIO_ADCTSC_Init()
 {
 	unsigned int *reg = NULL;
+	unsigned int FIFO_count = 0;
+	unsigned int FIFO_data = 0;
+	int i ;
 
 	if (memh == 0) {
 #ifdef BBBIO_LIB_DBG
@@ -367,6 +380,25 @@ int BBBIO_ADCTSC_Init()
 	BBBIO_ADCTSC_channel_ctrl(4, 0, 0, NULL, 0);
 	BBBIO_ADCTSC_channel_ctrl(5, 0, 0, NULL, 0);
 	BBBIO_ADCTSC_channel_ctrl(6, 0, 0, NULL, 0);
+
+	/* Clear FIFO  */
+	FIFO_count = *((unsigned int*)((void *)adctsc_ptr + ADCTSC_FIFO0COUNT));
+	for(i = 0 ; i < FIFO_count ; i++) {
+		FIFO_data = *((unsigned int*)((void *)adctsc_ptr + ADCTSC_FIFO0DATA));
+	}
+
+	FIFO_count = *((unsigned int*)((void *)adctsc_ptr + ADCTSC_FIFO1COUNT));
+        for(i = 0 ; i < FIFO_count ; i++) {
+		FIFO_data = *((unsigned int*)((void *)adctsc_ptr + ADCTSC_FIFO1DATA));
+        }
+
+	/* init work struct */
+	ADCTSC.FIFO[0].reg_count = (void *)adctsc_ptr + ADCTSC_FIFO0COUNT;
+	ADCTSC.FIFO[0].reg_data = (void *)adctsc_ptr + ADCTSC_FIFO0DATA;
+	ADCTSC.FIFO[0].next = &ADCTSC.FIFO[1];
+	ADCTSC.FIFO[1].reg_count = (void *)adctsc_ptr + ADCTSC_FIFO1COUNT;
+	ADCTSC.FIFO[1].reg_data = (void *)adctsc_ptr + ADCTSC_FIFO1DATA;
+	ADCTSC.FIFO[1].next = &ADCTSC.FIFO[0];
 
 	return 1;
 }

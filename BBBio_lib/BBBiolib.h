@@ -17,6 +17,10 @@
 #ifndef _BBBIOLIB_H_
 #define _BBBIOLIB_H_
 
+#include "BBBiolib_PWMSS.h"
+#include "BBBiolib_McSPI.h"
+#include "BBBiolib_ADCTSC.h"
+
 #define BBBIO_LIB_DBG
 #define BBBIO_DIR_IN 0
 #define BBBIO_DIR_OUT 1

@@ -69,11 +69,11 @@ struct BBBIO_McSPI_CH_struct
 	struct BBBIO_McSPI_TxRx_struct TxRx ;
 };
 
-// McSPI module struct
+/* McSPI module struct */
 struct BBBIO_McSPI_struct
 {
 	int CM_PER_enable ;
-	struct BBBIO_McSPI_CH_struct CH[MCSPI_ARG_CHANNEL_COUNT];	// AM335x have 4channel , but only pinout2
+	struct BBBIO_McSPI_CH_struct CH[MCSPI_ARG_CHANNEL_COUNT];
 };
 //-----------------------------------------------------------------------------------------------
 /* Global Variable */
@@ -95,17 +95,13 @@ inline unsigned int read_reg(volatile void *reg_base ,unsigned int offset)
 	return *((volatile unsigned int* )(reg_base+offset));
 }
 /* ----------------------------------------------------------------------------------------------- */
-/*********************************
- McSPI init
- *******************************
+/* McSPI init
  * iolib_init() will run this function automatically
- *
- *      @return         : 1 for success , 0 for failed
  */
 int BBBIO_McSPI_Init()
 {
 	int i ;
-	if (memh ==0) {
+	if (memh == 0) {
 #ifdef BBBIO_LIB_DBG
 		printf("BBBIO_PWM_Init: memory not mapped?\n");
 #endif
@@ -199,7 +195,7 @@ int BBBIO_McSPI_Setting(unsigned int McSPI_ID ,
 			unsigned int CLK_div ,		/* clock divider	, default clock : 48M Hz */
 			unsigned int CLKmode ,		/* POL/PHA ,		,clock polarity */
 			unsigned int EPOL ,
-			unsigned int DataDir ,		/* IS/DPE1/DPE0		,data0 Outpu	t data1 Input ,or data0 Input data1 Output */
+			unsigned int DataDir ,		/* IS/DPE1/DPE0		,data0 Output data1 Input ,or data0 Input data1 Output */
 			unsigned int WL)		/* WL 			,word length */
 {
 	volatile unsigned int* reg;
