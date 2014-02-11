@@ -1,0 +1,83 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <string.h>
+#include "../../BBBio_lib/BBBiolib.h"
+/* ------------------------------------------------------------ */
+#define NET_PORT	5000
+#define NET_HOST	"140.125.33.214"
+#define NET_BUFFER_SIZE	1028
+
+/* ----------------------------------------------------------- */
+unsigned int buffer[441000] ={0};
+int main(void)
+{
+	unsigned char socket_buffer[NET_BUFFER_SIZE] ={0};
+	unsigned int sample;
+	int i ;
+	int s_socket ;
+	struct sockaddr_in dest;
+
+	if((s_socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+		printf("Socket Faile\n");
+		exit(-1);
+	}
+	dest.sin_family = AF_INET;
+	dest.sin_port = htons(NET_PORT);
+	inet_aton(NET_HOST, &dest.sin_addr);
+
+	/* BBBIOlib init*/
+	iolib_init();
+
+	BBBIO_ADCTSC_channel_ctrl(0, 1, 1, buffer, 44100);
+	BBBIO_ADCTSC_channel_enable(0);
+
+	int offset =1024 ;
+	int id =0;
+	unsigned char * buf_ptr = (void *)&buffer[0];
+	int remain_size = 44100 * 4;
+
+
+	printf("%d %d\n",sizeof(buffer), remain_size);
+	for(i = 0 ; i < 44100 ; i++)
+		buffer[i] = 1024 ;
+
+
+	for(i = 0 ; i < 50 ; i++) {
+		BBBIO_ADCTSC_channel_enable(0);
+		BBBIO_ADCTSC_work(44100);
+
+		offset = 1024 ;
+		id = 0 ;
+		buf_ptr =(void *)buffer;
+		remain_size = 44100 * 4;
+		while(remain_size >0) {
+			memcpy(&socket_buffer[0], &id, sizeof(int));
+			memcpy(&socket_buffer[4], buf_ptr + id * 1024, sizeof(char) * offset);
+			sendto(s_socket, &socket_buffer[0], (4+offset) , 0, (struct sockaddr *)&dest, sizeof(dest));
+			remain_size -= 1024 ;
+			id ++ ;
+			if(remain_size < 1024) offset = remain_size ;
+		}
+		printf("%d\n",i);
+		sleep(1);
+	}
+/*
+	for(i = 0 ; i < 10 ; i++) {
+		sample = buffer[i];
+		printf("[%d \t%d \t%d]\n", sample, sample & 0x0FFF, ( sample & 0xF0000)>>16 );
+        }
+*/
+
+
+
+	iolib_free();
+	return 0;
+}
+
+
