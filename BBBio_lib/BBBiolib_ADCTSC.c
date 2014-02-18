@@ -23,6 +23,7 @@
 /* Beaglebone black ADC have 7 AIN (0~6) */
 #define ADCTSC_AIN_COUNT	7
 
+
 /* Device register mamory map */
 #define ADCTSC_MMAP_ADDR	0x44E0D000
 #define ADCTSC_MMAP_LEN	0x2000
@@ -95,19 +96,6 @@
 #define CTRL_ENABLE	0x1
 #define CTRL_STEP_ID_TAG	0x2
 
-
-/* step config */
-#define BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT	0x0
-#define BBBIO_ADC_STEP_MODE_SW_CONTINUOUS	0x1
-#define BBBIO_ADC_STEP_MODE_HW_ONE_SHOOT	0x2
-#define BBBIO_ADC_STEP_MODE_HW_CONTINUOUS	0x3
-
-#define BBBIO_ADC_STEP_AVG_NO	0x0
-#define BBBIO_ADC_STEP_AVG_2	0x1
-#define BBBIO_ADC_STEP_AVG_4	0x2
-#define BBBIO_ADC_STEP_AVG_8	0x3
-#define BBBIO_ADC_STEP_AVG_16	0x4
-
 /* ----------------------------------------------------------------------------------------------- */
 /* struct definition */
 struct ADCTSC_FIFO_struct
@@ -119,10 +107,10 @@ struct ADCTSC_FIFO_struct
 
 struct ADCTSC_channel_struct
 {
+	unsigned int enable ;	 /* HW channel en/disable,  */
 	unsigned int mode ;
-	unsigned int enable ;
 	unsigned int FIFO ;
-	/*  13 + O + S cycle per sample , O is open delay , S is sample delay
+	/*  13 + O + S cycle per sample, 13 is ADC converting time, O is open delay, S is sample delay .
 	 *	Open delay  minmum : 0
 	 *	Sample delay  minmum : 1
 	 */
@@ -133,7 +121,6 @@ struct ADCTSC_channel_struct
 	unsigned int buffer_size ;
 	unsigned int buffer_count ;
 	unsigned int *buffer_save_ptr ;
-	unsigned int *buffer_fetch_ptr ;
 };
 
 struct ADCTSC_struct
@@ -143,6 +130,8 @@ struct ADCTSC_struct
 	unsigned int ClockDiv;	/* Clock divider , Default ADC clock :24MHz */
 	struct ADCTSC_channel_struct channel[8];
 	struct ADCTSC_FIFO_struct FIFO[2] ;
+	unsigned char channel_en ;	/* SW channel en/disable, not real channel en/disable */
+
 };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -151,8 +140,6 @@ extern int memh;
 extern volatile unsigned int *cm_wkup_addr;
 volatile unsigned int *adctsc_ptr = NULL;
 
-
-int sample_buffer[441000] ={0};
 struct ADCTSC_struct ADCTSC ;
 /* ----------------------------------------------------------------------------------------------- */
 /* ADCTSC set range
@@ -187,7 +174,7 @@ static int BBBIO_ADCTSC_set_range(int L_range, int H_range)
  *
  *	#define BBBIO_ADCTSC_channel_enable(A) BBBIO_ADCTSC_channel_status(A,1)
  *	#define BBBIO_ADCTSC_channel_disable(A)	BBBIO_ADCTSC_channel_status(A,0)
-*/
+ */
 void BBBIO_ADCTSC_channel_status(int chn_ID ,int enable)
 {
 	unsigned int *reg = NULL;
@@ -217,6 +204,18 @@ void BBBIO_ADCTSC_channel_status(int chn_ID ,int enable)
 }
 
 /* ----------------------------------------------------------------------------------------------- */
+/* ADCTSC module control
+ *
+ * control module status .
+ *
+ *      @param clkdiv : ADC_TSC clock divider , default clock : 24MHz .
+ *	@param L_range : lowest ADC data .(0~4095)
+ *	@param H_range : Higest ADC data .(0~4095)
+ *
+ *	@note : L_range and H_range compare with ADC data , if the sampled data is less(L) /greater(H) than the value,
+ *		then a interrupt is generated .
+		BUT , no interrup process in this library ,just ignore the inconformity data (not store in FIFO).
+ */
 void BBBIO_ADCTSC_module_ctrl(unsigned int clkdiv, int L_range, int H_range)
 {
 	unsigned int *reg = NULL;
@@ -235,6 +234,17 @@ void BBBIO_ADCTSC_module_ctrl(unsigned int clkdiv, int L_range, int H_range)
 	BBBIO_ADCTSC_set_range(L_range, H_range);
 }
 /* ----------------------------------------------------------------------------------------------- */
+/* ADCTSC channel control
+ *
+ * control each channel sample status . each chnnel mapped one step .
+ *
+ *	@param chn_ID : channel ID which need configure. (BBBIO_AIN_0 ~ BBBIO_AIN_7)
+ *	@param mode : sample mode ,one-shot or continus. (SW mode only , HW synchronized not implement)
+ *	@param sample_avg : Number of samplings to average. (BBBIO_ADC_STEP_AVG BBBIO_ADC_STEP_AVG_1, 2, 4, 8, 16)
+ *	@param buf : buffer for store data.
+ *	@param buf_size : buffer size .
+ *
+ */
 void BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int sample_avg, unsigned int *buf, unsigned int buf_size)
 {
 	unsigned int *reg = NULL;
@@ -245,6 +255,10 @@ void BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int sample_avg, un
 		ADCTSC.channel[chn_ID].buffer_size = buf_size;
 		ADCTSC.channel[chn_ID].buffer_save_ptr = buf;
 		ADCTSC.channel[chn_ID].buffer_count = 0;
+		ADCTSC.channel_en |= 1 << chn_ID;	/* SW enable */
+	}
+	else {
+		ADCTSC.channel_en &= ~(1 << chn_ID);	/* SW disable */
 	}
 
 	/* Disable channel step*/
@@ -256,11 +270,8 @@ void BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int sample_avg, un
 
 	/* set step config */
 	reg = (void *)adctsc_ptr + (ADCTSC_STEPCONFIG1 + chn_ID * 0x8);
-	printf("%d \t%X\t",chn_ID, *reg);
-	*reg &= ~(0x1F) ;
-	printf("%X\t",*reg);
-	*reg |= mode | (sample_avg << 2) | ((chn_ID % 2) << 26);
-	printf("%X\n",*reg);
+	*reg &= ~(0x1F) ;	/* pre-maks Mode filed */
+	*reg |= (mode | (sample_avg << 2) | (chn_ID << 19) | ((chn_ID % 2) << 26));
 
 	/* resume step config register protection*/
 	reg = (void *)adctsc_ptr + ADCTSC_CTRL;
@@ -281,16 +292,20 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	unsigned int *reg_data = NULL;
 	unsigned int *reg_ctrl = NULL;
 	unsigned int buf_data = 0;
-	int buf_count = 0;
+	int FIFO_count = 0;
 	int chn_ID =0;
 	struct ADCTSC_channel_struct *chn_ptr =NULL;
 	struct ADCTSC_FIFO_struct *FIFO_ptr = ADCTSC.FIFO;
 	int i ;
+	unsigned int tmp_channel_en =ADCTSC.channel_en;
 
 	/* Start sample */
+
 	for(chn_ID = 0 ; chn_ID < ADCTSC_AIN_COUNT ; chn_ID++) {
-		if(ADCTSC.channel[chn_ID].enable)
+		if(ADCTSC.channel_en & (1 << chn_ID)) {
+			ADCTSC.channel[chn_ID].buffer_save_ptr =ADCTSC.channel[chn_ID].buffer; /* re-pointer save pointer */
 			BBBIO_ADCTSC_channel_enable(chn_ID);
+		}
 	}
 
 	/* Enable module and tag channel ID in FIFO data*/
@@ -298,31 +313,40 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	*reg_ctrl |= (CTRL_ENABLE | CTRL_STEP_ID_TAG);
 
 	/* waiting FIFO buffer fetch a data*/
-	while(fetch_size>0) {
+	while(tmp_channel_en !=0) {
 		reg_count = FIFO_ptr->reg_count;
 		reg_data = FIFO_ptr->reg_data;
 
-		buf_count = *reg_count;
-		if(buf_count > 0) fetch_size -- ;
-		for(i = 0 ; i < buf_count ; i++) {
-			buf_data = *reg_data;
-			chn_ID = (buf_data >> 16) & 0xF;
-			chn_ptr = &ADCTSC.channel[chn_ID];
-			 *chn_ptr->buffer_save_ptr = buf_data & 0xFFF;
-			// *chn_ptr->buffer_save_ptr = buf_data;
-			chn_ptr->buffer_save_ptr++;
-			chn_ptr->buffer_count ++;
+		FIFO_count = *reg_count;
+		if(FIFO_count > 0) {
+			/* fetch data from FIFO */
+			for(i = 0 ; i < FIFO_count ; i++) {
+				buf_data = *reg_data;
+				chn_ID = (buf_data >> 16) & 0xF;
+				chn_ptr = &ADCTSC.channel[chn_ID];
+
+				if((chn_ptr->buffer_size > chn_ptr->buffer_count) && (fetch_size > chn_ptr->buffer_count)) {
+					*(chn_ptr->buffer_save_ptr) = buf_data & 0xFFF;
+					chn_ptr->buffer_save_ptr++;
+					chn_ptr->buffer_count ++;
+				}
+				else {
+					tmp_channel_en &= ~(1 << chn_ID);
+				}
+			}
 		}
 		/* switch to next FIFO */
 		FIFO_ptr = FIFO_ptr->next;
 	}
 
-
 	/* all sample finish */
+
         for(chn_ID = 0 ; chn_ID < ADCTSC_AIN_COUNT ; chn_ID++) {
-		if(ADCTSC.channel[chn_ID].enable)
+		if(ADCTSC.channel_en & (1 << chn_ID)) {
 			BBBIO_ADCTSC_channel_disable(chn_ID);
+		}
         }
+
 	reg_ctrl = (void *)adctsc_ptr + ADCTSC_CTRL;
         *reg_ctrl &= ~(CTRL_ENABLE | CTRL_STEP_ID_TAG);
 
@@ -399,78 +423,7 @@ int BBBIO_ADCTSC_Init()
 	ADCTSC.FIFO[1].reg_count = (void *)adctsc_ptr + ADCTSC_FIFO1COUNT;
 	ADCTSC.FIFO[1].reg_data = (void *)adctsc_ptr + ADCTSC_FIFO1DATA;
 	ADCTSC.FIFO[1].next = &ADCTSC.FIFO[0];
-
+	ADCTSC.channel_en = 0;
 	return 1;
 }
 
-/* ----------------------------------------------------------------------------------------------- */
-void BBBIO_ADCTSC_step_work()
-{
-	unsigned int *reg = NULL;
-	unsigned int sample_count = 0;
-	unsigned int sample ;
-	unsigned int ADC_buf_count =0;
-	int i;
-
-	printf("------------- step work --------------\n");
-
-	reg = (void *)adctsc_ptr + ADCTSC_STEPENABLE;
-	*reg = 0;	// disable step 1
-	printf("STEPENABLE : %X\n", *reg);
-
-	reg = (void *)adctsc_ptr + ADCTSC_CTRL;
-	*reg |= 0x4 ;	/* cancel step config register protection*/
-
-	reg = (void *)adctsc_ptr + ADCTSC_STEPCONFIG1;
-	*reg |= 0x1;
-	printf(">STEPCONFIG1 : %X\n", *reg);
-
-	reg = (void *)adctsc_ptr + ADCTSC_CTRL;
-	*reg &= ~0x4 ;   /* resume step config register protection*/
-
-
-        reg = (void *)adctsc_ptr + ADCTSC_STEPENABLE;
-	*reg |=0x0001 << 1;     // enable step 1
-        printf("STEPENABLE : %X\n", *reg);
-
-
-	/* start sample */
-
-	reg = (void *)adctsc_ptr + ADCTSC_CTRL;
-	*reg |= 0x3 ;
-	printf("CTRL : %X\n",*reg);
-
-	struct timeval t_start,t_end;
-	gettimeofday(&t_start, NULL);
-
-	reg = (void *)adctsc_ptr + ADCTSC_FIFO0COUNT;
-	ADC_buf_count = *reg;
-	if(ADC_buf_count >0)
-		printf("FIFO0COUNT : %d\n",ADC_buf_count);
-
-	sample_count =0;
-	while(ADC_buf_count > 0 || sample_count < 44100) {
-		if(ADC_buf_count >0) {
-			reg = (void *)adctsc_ptr + ADCTSC_FIFO0DATA;
-			sample = *reg;
-			sample_buffer[sample_count] = sample;
-			sample_count ++ ;
-		}
-		reg = (void *)adctsc_ptr + ADCTSC_FIFO0COUNT;
-		ADC_buf_count = *reg;
-//		usleep(5000);
-	}
-	printf("<%d>\n",sample_count);
-	gettimeofday(&t_end, NULL);
-	for(i = 0 ; i < 5 ; i++) {
-		sample = sample_buffer[i];
-		printf("[%d \t%d \t%d]\n", sample, sample & 0x0FFF, ( sample & 0xF0000)>>16 );
-	}
-	float nTime = (t_end.tv_sec -t_start.tv_sec)*1000000.0 +(t_end.tv_usec -t_start.tv_usec);
-	printf("%f\n", nTime);
-
-	reg = (void *)adctsc_ptr + ADCTSC_CTRL;
-	*reg &= ~0x3;
-	printf("CTRL : %X\n",*reg);
-
-}

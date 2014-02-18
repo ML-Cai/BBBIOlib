@@ -3,28 +3,38 @@
 #include <stdlib.h>
 #include "../../BBBio_lib/BBBiolib.h"
 /* ----------------------------------------------------------- */
-unsigned int buffer[100] ={0};
 int main(void)
 {
 	unsigned int sample;
 	int i ,j;
+	unsigned int buffer_AIN_0[100] ={0};
+	unsigned int buffer_AIN_1[100] ={0};
 
 	/* BBBIOlib init*/
 	iolib_init();
 
-	BBBIO_ADCTSC_channel_ctrl(0, 1, 1, buffer, 100);
-	BBBIO_ADCTSC_channel_enable(0);
+	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN0, BBBIO_ADC_STEP_MODE_SW_CONTINUOUS, BBBIO_ADC_STEP_AVG_1, buffer_AIN_0, 100);
+	BBBIO_ADCTSC_channel_enable(BBBIO_ADC_AIN0);
+
+	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN1, BBBIO_ADC_STEP_MODE_SW_CONTINUOUS, BBBIO_ADC_STEP_AVG_1, buffer_AIN_1, 100);
+	BBBIO_ADCTSC_channel_enable(BBBIO_ADC_AIN1);
 
 	for(i = 0 ; i < 3 ; i++) {
-		BBBIO_ADCTSC_channel_enable(0);
+		printf("Start sample , fetch 10 sample \n");
 		BBBIO_ADCTSC_work(10);
 
+		printf("Channel 0 :\n");
 		for(j = 0 ; j < 10 ; j++) {
-			sample = buffer[j];
-			printf("[sample : %d \t Data : %d \tChnnel : %d]\n", sample, sample & 0x0FFF, ( sample & 0xF0000)>>16 );
+			sample = buffer_AIN_0[j];
+			printf("[sample : %d , %f v]\n", sample, ((float)sample / 4095.0f) * 1.8f);
 		}
-		sleep(1);
+		printf("Channel 1 :\n");
+		for(j = 0 ; j < 10 ; j++) {
+			sample = buffer_AIN_1[j];
+			printf("[sample : %d , %f v]\n", sample, ((float)sample / 4095.0f) * 1.8f);
+                }
 		printf("------------------------------\n");
+		sleep(1);
 	}
 
 	iolib_free();

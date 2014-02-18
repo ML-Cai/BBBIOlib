@@ -162,3 +162,11 @@ accroding this blog , i add some dts file for pin mux .
 		Demo Video : http://www.youtube.com/watch?v=xbuMTBIEgEc&list=HL1386612017&feature=mh_lolz
 
 		# make SMOTOR
+
+	ADC Demo :
+
+		simple ADC reader ,using on-board 1.8v and AGnd as sample input .
+
+		note : MAX Voltage on AIN0 ~ 7 is 1.8V !!!
+
+		# make ADC

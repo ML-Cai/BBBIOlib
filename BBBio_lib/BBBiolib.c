@@ -117,10 +117,9 @@ int iolib_init(void)
 		return -1;
 	}
 
-
 	/* mapping Clock Module Wakeup Registers
 	 *
-	 *  Note : the reason why not using mmap direct to mapping cm_wkup is page boundar .
+	 *  Note : the reason why not using mmap to mapping cm_wkup direct is page boundar .
 	 * 	   if using mmap directlly (like CM_PER ), it will cause an error about EINVAL (invalid argument) .
 	 *	   because the address of CM_WKUP is 0x44E00400 , it doesn't align the page (4K).
 	 */
