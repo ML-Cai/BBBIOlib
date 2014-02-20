@@ -16,7 +16,7 @@
 
 #ifndef _BBBIOLIB_H_
 #define _BBBIOLIB_H_
-
+/* ----------------------------------------------------------------------- */
 #include "BBBiolib_PWMSS.h"
 #include "BBBiolib_McSPI.h"
 #include "BBBiolib_ADCTSC.h"
@@ -26,6 +26,11 @@
 #define BBBIO_PWM_MODULE	0x2
 #define BBBIO_MCSPI_MODULE	0x4
 #define BBBIO_ADCTSC_MODULE	0x8
+
+//#define BBBIO_GPIO0_MODULE	(BBBIO_GPIO_MODULE << 8 | BBBIO_GPIO_0)
+
+
+
 
 
 #define BBBIO_LIB_DBG

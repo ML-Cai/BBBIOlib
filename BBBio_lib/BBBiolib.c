@@ -73,12 +73,10 @@ const unsigned int p9_PortIDSet[]={0,	0,	0,	0,	0,	0,	0,	0,
 /* Memory Handle and Control Handle */
 int memh=0;
 int ctrlh=0;
-volatile unsigned int *gpio_addr[4]	={NULL, NULL, NULL, NULL};
-volatile unsigned int *CM_ptr	=NULL;
-volatile unsigned int *cm_per_addr	=NULL;
-volatile unsigned int *cm_wkup_addr	=NULL ;
-extern volatile unsigned int *pwmss_ptr[3];
-extern volatile unsigned int *epwm_ptr[3];
+volatile unsigned int *gpio_addr[4] = {NULL, NULL, NULL, NULL};
+volatile unsigned int *CM_ptr = NULL;
+volatile unsigned int *cm_per_addr = NULL;
+volatile unsigned int *cm_wkup_addr = NULL ;
 
 /* pointer to const Port set and Port ID set array */
 char* PortSet_ptr[2];
