@@ -222,7 +222,6 @@ void BBBIO_ADCTSC_module_ctrl(unsigned int clkdiv)
 #ifdef BBBIO_LIB_DBG
 		fprintf(stderr, "BBBIO_ADCTSC_module_ctrl : Clock Divider value error [%d]\n");
 #endif
-		clkdiv = 1;
 	}
 	else {
 		reg = (void *)adctsc_ptr + ADCTSC_ADC_CLKDIV;
@@ -256,8 +255,6 @@ int BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int open_dly, int s
 #endif
 
 	}
-
-
 
 	/* assian buffer */
 	if(buf != NULL && buf_size > 0) {
@@ -414,7 +411,6 @@ int BBBIO_ADCTSC_Init()
 	*reg &= ~0x1 ;
 
 	/* Default ADC module configure*/
-//	BBBIO_ADCTSC_module_ctrl(35, ADCRANGE_MIN_RANGE, ADCRANGE_MAX_RANGE);	/* 44100 hz */
 	BBBIO_ADCTSC_module_ctrl(1);
 	BBBIO_ADCTSC_set_range(ADCRANGE_MIN_RANGE, ADCRANGE_MAX_RANGE);
 
