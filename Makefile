@@ -64,7 +64,10 @@ BMOTOR : ${DEMO_PATH}Demo_BrushlessMotor/BrushlessMotor.c libBBBio.a
 	 gcc -o BMOTOR ${DEMO_PATH}Demo_BrushlessMotor/BrushlessMotor.c -L ${LIB_PATH} -lBBBio
 
 ADC : ${DEMO_PATH}Demo_ADC/ADC.c libBBBio.a
-	gcc -o ADC ${DEMO_PATH}Demo_ADC/ADC.c -L ${LIB_PATH} -lBBBio
+	gcc -o ADC ${DEMO_PATH}Demo_ADC/ADC.c -L ${LIB_PATH} -lBBBio -lm
+
+ADC_VOICE : ${DEMO_PATH}Demo_ADC/ADC_voice.c libBBBio.a
+	gcc -o ADC_VOICE ${DEMO_PATH}Demo_ADC/ADC_voice.c -L ${LIB_PATH} -lBBBio -lm
 
 #---------------------------------------------------
 # toolkit 
@@ -77,6 +80,10 @@ EP_STATUS : ${TOOLKIT_PATH}Toolkit_EP_Status/EP_status.c libBBBio.a
 	gcc -o EP_status ${TOOLKIT_PATH}Toolkit_EP_Status/EP_status.c -L ${LIB_PATH} -lBBBio
 
 
+ADC_CALC : ${TOOLKIT_PATH}Toolkit_ADC_CALC/ADC_CALC.c
+	gcc -o ADC_CALC ${TOOLKIT_PATH}Toolkit_ADC_CALC/ADC_CALC.c
+
+
 #---------------------------------------------------
 # Lab
 #---------------------------------------------------
@@ -87,5 +94,5 @@ RA : ${LAB_PATH}Lab_Robot_Arm/Robot_Arm.c libBBBio.a
 
 .PHONY: clean
 clean :
-	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_CLK_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO Debouncing 4x4keypad EP_status PWM RA ADXL345 ADC
+	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_CLK_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO Debouncing 4x4keypad EP_status PWM RA ADXL345 ADC ADC_CALC
 

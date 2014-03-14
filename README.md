@@ -23,6 +23,8 @@ Simple C I/O library of Beaglebone balck
 
 	V2.7	December.20 2013 - add simple McSPI control function .
 
+	V2.8	March.14 2014 - add ADC application of Arduino Microphone module ,and ADC argument calculation toolkit .
+
 =============================================================================================
 
 this library support simple I/O for beaglebone black ,using C .
@@ -57,6 +59,18 @@ Demo Directory include some demo basic this library ,each circuit layout ,pictur
 		include Pin mode , pull-high/low .... etc .
 
 		# make EP_STATUS
+
+
+	ADC Argument Calculation toolkit :
+		This toolkit is a simple computer of ADC clock argument calculation ,
+
+		it calculate the Clock Divider / Open Delay / Sample Average for ADC module ,
+
+		and list all "Feasible Solution" of these three value to achieve the request frequency .
+
+		# make ADC_CALC
+
+		# ./ADC_CALC -f {request frequency} -t {frequency tolerance}
 
 
 **Dts :**
@@ -170,3 +184,9 @@ accroding this blog , i add some dts file for pin mux .
 		note : MAX Voltage on AIN0 ~ 7 is 1.8V !!!
 
 		# make ADC
+
+	ADC Arduino Microphone Demo :
+
+		ADC sampleing of Arduino Microphone module , this demo also shows the application of ADC_CALC toolkit.
+
+		# make ADC_VOICE

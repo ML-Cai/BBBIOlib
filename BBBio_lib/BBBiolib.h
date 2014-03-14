@@ -302,10 +302,10 @@ int iolib_free(void);
 int iolib_delay_ms(unsigned int msec);
 
 /* set and get pin levels */
-inline void pin_high(char port, char pin);
-inline void pin_low(char port, char pin);
-inline char is_high(char port, char pin);
-inline char is_low(char port, char pin);
+void pin_high(char port, char pin);
+void pin_low(char port, char pin);
+char is_high(char port, char pin);
+char is_low(char port, char pin);
 
 /* ----------------------------------------------------------------------
  * BBBIO basic function

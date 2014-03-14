@@ -152,6 +152,9 @@ struct ADCTSC_struct ADCTSC ;
  *	@return : 0 for error , 1 for success .
  *
  * 	@Note : Max Voltage in ADC_TSC is 1.8v .
+ *		L_range and H_range compare with ADC data , if the sampled data is less(L) /greater(H) than the value,
+ *		a interrupt will generated . BUT , no interrup process in this library ,just ignore the inconformity data (not store in FIFO).
+ *
  */
 static int BBBIO_ADCTSC_set_range(int L_range, int H_range)
 {
@@ -159,7 +162,7 @@ static int BBBIO_ADCTSC_set_range(int L_range, int H_range)
 
 	if((L_range > 4095) || (L_range < 0) || (H_range > 4095) || (H_range < 0) || (H_range < L_range)) {
 #ifdef BBBIO_LIB_DBG
-		printf("BBBIO_ADCTSC_set_range : ADC range error : [L:%d L ,H:%d] , (0 <= range <= 4095)\n", L_range, H_range);
+		fprintf(stderr, "BBBIO_ADCTSC_set_range : ADC range error : [L:%d L ,H:%d] , (0 <= range <= 4095)\n", L_range, H_range);
 #endif
 		return 0 ;
 	}
@@ -181,7 +184,7 @@ void BBBIO_ADCTSC_channel_status(int chn_ID ,int enable)
 
 	if((chn_ID < 0) || (chn_ID > 6)) {
 #ifdef BBBIO_LIB_DBG
-		printf("BBBIO_ADCTSC_Channel_status : Channel ID error [%d]\n", chn_ID);
+		fprintf(stderr, "BBBIO_ADCTSC_Channel_status : Channel ID error [%d]\n", chn_ID);
 #endif
 	}
 	else {
@@ -208,46 +211,53 @@ void BBBIO_ADCTSC_channel_status(int chn_ID ,int enable)
  *
  * control module status .
  *
- *      @param clkdiv : ADC_TSC clock divider , default clock : 24MHz .
- *	@param L_range : lowest ADC data .(0~4095)
- *	@param H_range : Higest ADC data .(0~4095)
+ *      @param clkdiv : ADC_TSC clock divider , (default ADC module Clock : 24MHz).
  *
- *	@note : L_range and H_range compare with ADC data , if the sampled data is less(L) /greater(H) than the value,
- *		then a interrupt is generated .
-		BUT , no interrup process in this library ,just ignore the inconformity data (not store in FIFO).
  */
-void BBBIO_ADCTSC_module_ctrl(unsigned int clkdiv, int L_range, int H_range)
+void BBBIO_ADCTSC_module_ctrl(unsigned int clkdiv)
 {
 	unsigned int *reg = NULL;
 
 	if((clkdiv < 1) || (clkdiv > 65535)) {
 #ifdef BBBIO_LIB_DBG
-		printf("BBBIO_ADCTSC_module_ctrl : Clock Divider error [%d] ,set to div 1\n", clkdiv);
+		fprintf(stderr, "BBBIO_ADCTSC_module_ctrl : Clock Divider value error [%d]\n");
 #endif
 		clkdiv = 1;
 	}
-
-	reg = (void *)adctsc_ptr + ADCTSC_ADC_CLKDIV;
-	*reg = clkdiv ;
-
-	/* Default ADC range*/
-	BBBIO_ADCTSC_set_range(L_range, H_range);
+	else {
+		reg = (void *)adctsc_ptr + ADCTSC_ADC_CLKDIV;
+		*reg = (clkdiv -1) ;
+	}
 }
 /* ----------------------------------------------------------------------------------------------- */
 /* ADCTSC channel control
  *
  * control each channel sample status . each chnnel mapped one step .
  *
- *	@param chn_ID : channel ID which need configure. (BBBIO_AIN_0 ~ BBBIO_AIN_7)
+ *	@param chn_ID : channel ID which need configure. (BBBIO_AIN0 ~ BBBIO_AIN6)
  *	@param mode : sample mode ,one-shot or continus. (SW mode only , HW synchronized not implement)
  *	@param sample_avg : Number of samplings to average. (BBBIO_ADC_STEP_AVG BBBIO_ADC_STEP_AVG_1, 2, 4, 8, 16)
+ *	@param open_dly : open delay ,default :0 , max :262143 .
+ *	@param sample_dly : sample delat , default :1 , max :255 .
  *	@param buf : buffer for store data.
  *	@param buf_size : buffer size .
  *
  */
-void BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int sample_avg, unsigned int *buf, unsigned int buf_size)
+int BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int open_dly, int sample_dly, int sample_avg, unsigned int *buf, unsigned int buf_size)
 {
 	unsigned int *reg = NULL;
+
+	if((chn_ID > BBBIO_ADC_AIN6) || (chn_ID < BBBIO_ADC_AIN0) ||
+	   (sample_avg > BBBIO_ADC_STEP_AVG_16) || (sample_avg < BBBIO_ADC_STEP_AVG_1) ||
+	   (open_dly > 262143) || (open_dly < 0) || (sample_dly > 255) || (sample_dly < 1)){
+#ifdef BBBIO_LIB_DBG
+		fprintf(stderr, "BBBIO_ADCTSC_channel_ctrl : argument error\n");
+		return 0;
+#endif
+
+	}
+
+
 
 	/* assian buffer */
 	if(buf != NULL && buf_size > 0) {
@@ -273,11 +283,21 @@ void BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int sample_avg, un
 	*reg &= ~(0x1F) ;	/* pre-maks Mode filed */
 	*reg |= (mode | (sample_avg << 2) | (chn_ID << 19) | ((chn_ID % 2) << 26));
 
+
+	/* set open delay */
+	if(open_dly <0 || open_dly >262143) {
+		open_dly = 0;
+	}
+	reg = (void *)adctsc_ptr + (ADCTSC_STEPDELAY1 + chn_ID * 0x8);
+	*reg =0;
+	*reg |= ((sample_dly - 1) << 24 | open_dly);
+
 	/* resume step config register protection*/
 	reg = (void *)adctsc_ptr + ADCTSC_CTRL;
 	*reg &= ~0x4 ;
-}
 
+	return 1;
+}
 
 /* ----------------------------------------------------------------------------------------------- */
 /* ADCTSC fetch data
@@ -297,7 +317,7 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	struct ADCTSC_channel_struct *chn_ptr =NULL;
 	struct ADCTSC_FIFO_struct *FIFO_ptr = ADCTSC.FIFO;
 	int i ;
-	unsigned int tmp_channel_en =ADCTSC.channel_en;
+	unsigned int tmp_channel_en = ADCTSC.channel_en;
 
 	/* Start sample */
 
@@ -311,6 +331,7 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	/* Enable module and tag channel ID in FIFO data*/
 	reg_ctrl = (void *)adctsc_ptr + ADCTSC_CTRL;
 	*reg_ctrl |= (CTRL_ENABLE | CTRL_STEP_ID_TAG);
+
 
 	/* waiting FIFO buffer fetch a data*/
 	while(tmp_channel_en !=0) {
@@ -331,7 +352,7 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 					chn_ptr->buffer_count ++;
 				}
 				else {
-					tmp_channel_en &= ~(1 << chn_ID);
+					tmp_channel_en &= ~(1 << chn_ID);	/* SW Disable this channel */
 				}
 			}
 		}
@@ -340,7 +361,6 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	}
 
 	/* all sample finish */
-
         for(chn_ID = 0 ; chn_ID < ADCTSC_AIN_COUNT ; chn_ID++) {
 		if(ADCTSC.channel_en & (1 << chn_ID)) {
 			BBBIO_ADCTSC_channel_disable(chn_ID);
@@ -372,7 +392,7 @@ int BBBIO_ADCTSC_Init()
 
 	if (memh == 0) {
 #ifdef BBBIO_LIB_DBG
-		printf("BBBIO_ADCTSC_Init : memory not mapped?\n");
+		fprintf(stderr, "BBBIO_ADCTSC_Init : memory not mapped?\n");
 #endif
 		return 0;
 	}
@@ -380,7 +400,7 @@ int BBBIO_ADCTSC_Init()
 	adctsc_ptr = mmap(0, ADCTSC_MMAP_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, memh, ADCTSC_MMAP_ADDR);
 	if(adctsc_ptr == MAP_FAILED) {
 #ifdef BBBIO_LIB_DBG
-		printf("BBBIO_ADCTSC_Init: ADCTSC mmap failure!\n");
+		fprintf(stderr, "BBBIO_ADCTSC_Init: ADCTSC mmap failure!\n");
 #endif
 		return 0;
 	}
@@ -394,16 +414,18 @@ int BBBIO_ADCTSC_Init()
 	*reg &= ~0x1 ;
 
 	/* Default ADC module configure*/
-	BBBIO_ADCTSC_module_ctrl(1, ADCRANGE_MIN_RANGE, ADCRANGE_MAX_RANGE);
+//	BBBIO_ADCTSC_module_ctrl(35, ADCRANGE_MIN_RANGE, ADCRANGE_MAX_RANGE);	/* 44100 hz */
+	BBBIO_ADCTSC_module_ctrl(1);
+	BBBIO_ADCTSC_set_range(ADCRANGE_MIN_RANGE, ADCRANGE_MAX_RANGE);
 
         /* Default channel configure */
-	BBBIO_ADCTSC_channel_ctrl(0, 0, 0, NULL, 0);
-	BBBIO_ADCTSC_channel_ctrl(1, 0, 0, NULL, 0);
-	BBBIO_ADCTSC_channel_ctrl(2, 0, 0, NULL, 0);
-	BBBIO_ADCTSC_channel_ctrl(3, 0, 0, NULL, 0);
-	BBBIO_ADCTSC_channel_ctrl(4, 0, 0, NULL, 0);
-	BBBIO_ADCTSC_channel_ctrl(5, 0, 0, NULL, 0);
-	BBBIO_ADCTSC_channel_ctrl(6, 0, 0, NULL, 0);
+	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN0, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
+	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN1, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
+	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN2, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
+	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN3, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
+	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN4, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
+	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN5, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
+	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN6, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
 
 	/* Clear FIFO  */
 	FIFO_count = *((unsigned int*)((void *)adctsc_ptr + ADCTSC_FIFO0COUNT));

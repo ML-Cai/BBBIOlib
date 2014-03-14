@@ -211,22 +211,22 @@ int iolib_setdir(char port, char pin, char dir)
 	return(0);
 }
 /* ----------------------------------------------------------------------------------------------- */
-inline void pin_high(char port, char pin)
+void pin_high(char port, char pin)
 {
 	*((unsigned int *)((void *)gpio_addr[PortSet_ptr[port-8][pin-1]]+BBBIO_GPIO_SETDATAOUT)) = PortIDSet_ptr[port-8][pin-1];
 }
 /* ----------------------------------------------------------------------------------------------- */
-inline void pin_low(char port, char pin)
+void pin_low(char port, char pin)
 {
 	*((unsigned int *)((void *)gpio_addr[PortSet_ptr[port-8][pin-1]]+BBBIO_GPIO_CLEARDATAOUT)) = PortIDSet_ptr[port-8][pin-1];
 }
 /* ----------------------------------------------------------------------------------------------- */
-inline char is_high(char port, char pin)
+char is_high(char port, char pin)
 {
 	return ((*((unsigned int *)((void *)gpio_addr[PortSet_ptr[port-8][pin-1]]+BBBIO_GPIO_DATAIN)) & PortIDSet_ptr[port-8][pin-1])!=0);
 }
 /* ----------------------------------------------------------------------------------------------- */
-inline char is_low(char port, char pin)
+char is_low(char port, char pin)
 {
 	return ((*((unsigned int *)((void *)gpio_addr[PortSet_ptr[port-8][pin-1]]+BBBIO_GPIO_DATAIN)) & PortIDSet_ptr[port-8][pin-1])==0);
 }
