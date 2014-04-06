@@ -23,6 +23,10 @@ BBBiolib_McSPI.o : ${LIB_PATH}BBBiolib_McSPI.c ${LIB_PATH}BBBiolib_PWMSS.h
 BBBiolib_ADCTSC.o : ${LIB_PATH}BBBiolib_ADCTSC.c ${LIB_PATH}BBBiolib_ADCTSC.h
 	gcc -c ${LIB_PATH}BBBiolib_ADCTSC.c -o ${LIB_PATH}BBBiolib_ADCTSC.o
 
+
+install : libBBBio.a 
+	
+
 #---------------------------------------------------
 # Demo
 #---------------------------------------------------
@@ -49,7 +53,7 @@ SMOTOR : ${DEMO_PATH}Demo_ServoMotor/ServoMotor.c libBBBio.a
 	gcc -o SMOTOR ${DEMO_PATH}Demo_ServoMotor/ServoMotor.c -L ${LIB_PATH} -lBBBio
 
 LED_GPIO : ${DEMO_PATH}Demo_LED_GPIO/LED_GPIO.c libBBBio.a
-	gcc -o LED_GPIO ${DEMO_PATH}Demo_LED_GPIO/LED_GPIO.c -L ${LIB_PATH} -lBBBio
+	gcc -o LED_GPIO ${DEMO_PATH}Demo_LED_GPIO/LED_GPIO.c -L ${LIB_PATH} -lBBBio -pthread
 
 DEBOUNCING : ${DEMO_PATH}Demo_Debouncing/Debouncing.c libBBBio.a
 	gcc -o Debouncing ${DEMO_PATH}Demo_Debouncing/Debouncing.c -L ${LIB_PATH} -lBBBio
@@ -67,7 +71,7 @@ ADC : ${DEMO_PATH}Demo_ADC/ADC.c libBBBio.a
 	gcc -o ADC ${DEMO_PATH}Demo_ADC/ADC.c -L ${LIB_PATH} -lBBBio -lm
 
 ADC_VOICE : ${DEMO_PATH}Demo_ADC/ADC_voice.c libBBBio.a
-	gcc -o ADC_VOICE ${DEMO_PATH}Demo_ADC/ADC_voice.c -L ${LIB_PATH} -lBBBio -lm
+	gcc -o ADC_VOICE ${DEMO_PATH}Demo_ADC/ADC_voice.c -L ${LIB_PATH} -lBBBio -lm -pthread -O3
 
 #---------------------------------------------------
 # toolkit 
@@ -89,7 +93,7 @@ ADC_CALC : ${TOOLKIT_PATH}Toolkit_ADC_CALC/ADC_CALC.c
 #---------------------------------------------------
 
 RA : ${LAB_PATH}Lab_Robot_Arm/Robot_Arm.c libBBBio.a
-	gcc -o RA  ${LAB_PATH}Lab_Robot_Arm/Robot_Arm.c -L ${LIB_PATH} -lBBBio -pthread -lm
+	gcc -o RA  ${LAB_PATH}Lab_Robot_Arm/Robot_Arm.c -L ${LIB_PATH} -lBBBio -lm
 
 
 .PHONY: clean

@@ -13,7 +13,14 @@ int main(void)
 	/* BBBIOlib init*/
 	iolib_init();
 
-	BBBIO_ADCTSC_module_ctrl(1);
+	/*ADC work mode : Busy polling mode  */
+	BBBIO_ADCTSC_module_ctrl(BBBIO_ADC_WORK_MODE_BUSY_POLLING, 1);
+
+	/*ADC work mode : Timer interrupt mode
+	 *	Note : This mode handle SIGALRM using signale() function in BBBIO_ADCTSC_work();
+	 */
+	//BBBIO_ADCTSC_module_ctrl(BBBIO_ADCTSC_module_ctrl(BBBIO_ADC_WORK_MODE_BUSY_POLLING, 1);
+
 	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN0, BBBIO_ADC_STEP_MODE_SW_CONTINUOUS, 0, 1, BBBIO_ADC_STEP_AVG_1, buffer_AIN_0, 100);
 	BBBIO_ADCTSC_channel_enable(BBBIO_ADC_AIN0);
 

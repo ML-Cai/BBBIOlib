@@ -8,13 +8,15 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sched.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <time.h>
 #include "BBBiolib.h"
 #include "BBBiolib_ADCTSC.h"
-
+#include <unistd.h>
+#include <signal.h>
 
 #include <sys/time.h>
 //-----------------------------------------------------------------------------------------------
@@ -125,13 +127,14 @@ struct ADCTSC_channel_struct
 
 struct ADCTSC_struct
 {
+	unsigned int work_mode ;
 	unsigned int H_range;
 	unsigned int L_range;
 	unsigned int ClockDiv;	/* Clock divider , Default ADC clock :24MHz */
 	struct ADCTSC_channel_struct channel[8];
 	struct ADCTSC_FIFO_struct FIFO[2] ;
 	unsigned char channel_en ;	/* SW channel en/disable, not real channel en/disable */
-
+	unsigned char channel_en_clk;
 };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -211,10 +214,11 @@ void BBBIO_ADCTSC_channel_status(int chn_ID ,int enable)
  *
  * control module status .
  *
+ *	@param work_type : ADC work type ,Busy polling or Timer interrupt.
  *      @param clkdiv : ADC_TSC clock divider , (default ADC module Clock : 24MHz).
  *
  */
-void BBBIO_ADCTSC_module_ctrl(unsigned int clkdiv)
+void BBBIO_ADCTSC_module_ctrl(unsigned int work_type, unsigned int clkdiv)
 {
 	unsigned int *reg = NULL;
 
@@ -227,6 +231,13 @@ void BBBIO_ADCTSC_module_ctrl(unsigned int clkdiv)
 	else {
 		reg = (void *)adctsc_ptr + ADCTSC_ADC_CLKDIV;
 		*reg = (clkdiv -1) ;
+	}
+
+	if((work_type == BBBIO_ADC_WORK_MODE_BUSY_POLLING) || (work_type == BBBIO_ADC_WORK_MODE_TIMER_INT)) {
+		fprintf(stderr, "BBBIO_ADCTSC_module_ctrl : Work Type setting error\n");
+	}
+	else {
+		ADCTSC.work_mode = work_type;
 	}
 }
 /* ----------------------------------------------------------------------------------------------- */
@@ -298,7 +309,50 @@ int BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int open_dly, int s
 
 	return 1;
 }
+/* ----------------------------------------------------------------------------------------------- */
+static void _ADCTSC_work(int sig_arg)
+{
+	unsigned int *reg_count = NULL;
+	unsigned int *reg_data = NULL;
+	unsigned int *reg_ctrl = NULL;
+	unsigned int buf_data = 0;
+	int FIFO_count = 0;
+	int chn_ID =0;
+	struct ADCTSC_channel_struct *chn_ptr =NULL;
+	struct ADCTSC_FIFO_struct *FIFO_ptr = ADCTSC.FIFO;
+	int i ,j;
+	unsigned int tmp_channel_en = ADCTSC.channel_en;
 
+	/* waiting FIFO buffer fetch a data*/
+	for(j = 0 ; j < 2 ; j++) {
+		reg_count = FIFO_ptr->reg_count;
+		reg_data = FIFO_ptr->reg_data;
+
+		FIFO_count = *reg_count;
+		if(FIFO_count > 0) {
+			/* fetch data from FIFO */
+			for(i = 0 ; i < FIFO_count ; i++) {
+				buf_data = *reg_data;
+				chn_ID = (buf_data >> 16) & 0xF;
+				chn_ptr = &ADCTSC.channel[chn_ID];
+
+				if((chn_ptr->buffer_size > chn_ptr->buffer_count) && (44100 > chn_ptr->buffer_count)) {
+					*(chn_ptr->buffer_save_ptr) = buf_data & 0xFFF;
+					chn_ptr->buffer_save_ptr++;
+					chn_ptr->buffer_count ++;
+				}
+				else {
+					ADCTSC.channel_en_clk &= ~(1 << chn_ID);	/* SW Disable this channel */
+					/* No break here , still work for clear fifo */
+//					printf("End %d\n", ADCTSC.channel_en_clk);
+				}
+			}
+		}
+		/* switch to next FIFO */
+		FIFO_ptr = FIFO_ptr->next;
+	}
+//	printf("{%d}\n", ADCTSC.channel_en_clk);
+}
 /* ----------------------------------------------------------------------------------------------- */
 /* ADCTSC fetch data
  *
@@ -320,7 +374,6 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	unsigned int tmp_channel_en = ADCTSC.channel_en;
 
 	/* Start sample */
-
 	for(chn_ID = 0 ; chn_ID < ADCTSC_AIN_COUNT ; chn_ID++) {
 		if(ADCTSC.channel_en & (1 << chn_ID)) {
 			ADCTSC.channel[chn_ID].buffer_save_ptr =ADCTSC.channel[chn_ID].buffer; /* re-pointer save pointer */
@@ -333,31 +386,62 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	*reg_ctrl |= (CTRL_ENABLE | CTRL_STEP_ID_TAG);
 
 
-	/* waiting FIFO buffer fetch a data*/
-	while(tmp_channel_en !=0) {
-		reg_count = FIFO_ptr->reg_count;
-		reg_data = FIFO_ptr->reg_data;
 
-		FIFO_count = *reg_count;
-		if(FIFO_count > 0) {
-			/* fetch data from FIFO */
-			for(i = 0 ; i < FIFO_count ; i++) {
-				buf_data = *reg_data;
-				chn_ID = (buf_data >> 16) & 0xF;
-				chn_ptr = &ADCTSC.channel[chn_ID];
+	if(ADCTSC.work_mode & BBBIO_ADC_WORK_MODE_TIMER_INT) {
+		ADCTSC.channel_en_clk = ADCTSC.channel_en;
 
-				if((chn_ptr->buffer_size > chn_ptr->buffer_count) && (fetch_size > chn_ptr->buffer_count)) {
-					*(chn_ptr->buffer_save_ptr) = buf_data & 0xFFF;
-					chn_ptr->buffer_save_ptr++;
-					chn_ptr->buffer_count ++;
-				}
-				else {
-					tmp_channel_en &= ~(1 << chn_ID);	/* SW Disable this channel */
-				}
-			}
+		struct itimerval ADC_t;
+		ADC_t.it_interval.tv_usec = 300;
+		ADC_t.it_interval.tv_sec = 0;
+		ADC_t.it_value.tv_usec = 300;
+		ADC_t.it_value.tv_sec = 0;
+
+		signal(SIGALRM, _ADCTSC_work);
+		if(setitimer( ITIMER_REAL, &ADC_t, NULL) < 0 ){
+			printf("setitimer error\n");
+			return 0;
 		}
-		/* switch to next FIFO */
-		FIFO_ptr = FIFO_ptr->next;
+		while(ADCTSC.channel_en_clk !=0) {
+			usleep(100000);
+		}
+		ADC_t.it_interval.tv_usec = 0;
+		ADC_t.it_interval.tv_sec = 0;
+		ADC_t.it_value.tv_usec = 0;
+		ADC_t.it_value.tv_sec = 0;
+		setitimer( ITIMER_REAL, &ADC_t, NULL);
+		signal(SIGALRM, NULL);
+	}
+	else { /* Busy Polling mode */
+		struct timeval tv;
+		/* waiting FIFO buffer fetch a data */
+		while(tmp_channel_en !=0) {
+			reg_count = FIFO_ptr->reg_count;
+			reg_data = FIFO_ptr->reg_data;
+
+			FIFO_count = *reg_count;
+			if(FIFO_count > 0) {
+				/* fetch data from FIFO */
+				for(i = 0 ; i < FIFO_count ; i++) {
+					buf_data = *reg_data;
+					chn_ID = (buf_data >> 16) & 0xF;
+					chn_ptr = &ADCTSC.channel[chn_ID];
+	
+					if((chn_ptr->buffer_size > chn_ptr->buffer_count) && (fetch_size > chn_ptr->buffer_count)) {
+						*(chn_ptr->buffer_save_ptr) = buf_data & 0xFFF;
+						chn_ptr->buffer_save_ptr++;
+						chn_ptr->buffer_count ++;
+					}
+					else {
+						tmp_channel_en &= ~(1 << chn_ID);	// SW Disable this channel 
+					}
+				}
+				tv.tv_sec = 0;
+				tv.tv_usec = 10;
+				select(0, NULL, NULL, NULL, &tv);
+			}
+			// switch to next FIFO 
+			FIFO_ptr = FIFO_ptr->next;
+		}
 	}
 
 	/* all sample finish */
@@ -415,7 +499,7 @@ int BBBIO_ADCTSC_Init()
 
 	/* Default ADC module configure*/
 //	BBBIO_ADCTSC_module_ctrl(35, ADCRANGE_MIN_RANGE, ADCRANGE_MAX_RANGE);	/* 44100 hz */
-	BBBIO_ADCTSC_module_ctrl(1);
+	BBBIO_ADCTSC_module_ctrl(BBBIO_ADC_WORK_MODE_BUSY_POLLING, 1);
 	BBBIO_ADCTSC_set_range(ADCRANGE_MIN_RANGE, ADCRANGE_MAX_RANGE);
 
         /* Default channel configure */
@@ -446,6 +530,9 @@ int BBBIO_ADCTSC_Init()
 	ADCTSC.FIFO[1].reg_data = (void *)adctsc_ptr + ADCTSC_FIFO1DATA;
 	ADCTSC.FIFO[1].next = &ADCTSC.FIFO[0];
 	ADCTSC.channel_en = 0;
+
+	/* init work mode ad busy_polling mode */
+	ADCTSC.work_mode = BBBIO_ADC_WORK_MODE_BUSY_POLLING;
 	return 1;
 }
 
