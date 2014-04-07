@@ -234,10 +234,10 @@ void BBBIO_ADCTSC_module_ctrl(unsigned int work_type, unsigned int clkdiv)
 	}
 
 	if((work_type == BBBIO_ADC_WORK_MODE_BUSY_POLLING) || (work_type == BBBIO_ADC_WORK_MODE_TIMER_INT)) {
-		fprintf(stderr, "BBBIO_ADCTSC_module_ctrl : Work Type setting error\n");
+		ADCTSC.work_mode = work_type;
 	}
 	else {
-		ADCTSC.work_mode = work_type;
+		fprintf(stderr, "BBBIO_ADCTSC_module_ctrl : Work Type setting error\n");
 	}
 }
 /* ----------------------------------------------------------------------------------------------- */
@@ -388,12 +388,13 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 
 
 	if(ADCTSC.work_mode & BBBIO_ADC_WORK_MODE_TIMER_INT) {
+	printf("Int\n");
 		ADCTSC.channel_en_clk = ADCTSC.channel_en;
 
 		struct itimerval ADC_t;
-		ADC_t.it_interval.tv_usec = 300;
+		ADC_t.it_interval.tv_usec = 100;
 		ADC_t.it_interval.tv_sec = 0;
-		ADC_t.it_value.tv_usec = 300;
+		ADC_t.it_value.tv_usec = 100;
 		ADC_t.it_value.tv_sec = 0;
 
 		signal(SIGALRM, _ADCTSC_work);
@@ -436,7 +437,7 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 					}
 				}
 				tv.tv_sec = 0;
-				tv.tv_usec = 10;
+				tv.tv_usec = 40;
 				select(0, NULL, NULL, NULL, &tv);
 			}
 			// switch to next FIFO 
