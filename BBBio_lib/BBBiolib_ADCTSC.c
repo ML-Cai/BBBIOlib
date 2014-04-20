@@ -135,6 +135,7 @@ struct ADCTSC_struct
 	struct ADCTSC_FIFO_struct FIFO[2] ;
 	unsigned char channel_en ;	/* SW channel en/disable, not real channel en/disable */
 	unsigned char channel_en_clk;
+	int fetch_size ;		/* fetch size in BBBIO_ADCTSC_work function */
 };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -310,6 +311,9 @@ int BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int open_dly, int s
 	return 1;
 }
 /* ----------------------------------------------------------------------------------------------- */
+/* signal function for BBBIO_ADCTSC_work (sig SIGALRM)
+ *
+ */
 static void _ADCTSC_work(int sig_arg)
 {
 	unsigned int *reg_count = NULL;
@@ -336,7 +340,7 @@ static void _ADCTSC_work(int sig_arg)
 				chn_ID = (buf_data >> 16) & 0xF;
 				chn_ptr = &ADCTSC.channel[chn_ID];
 
-				if((chn_ptr->buffer_size > chn_ptr->buffer_count) && (44100 > chn_ptr->buffer_count)) {
+				if((chn_ptr->buffer_size > chn_ptr->buffer_count) && (ADCTSC.fetch_size > chn_ptr->buffer_count)) {
 					*(chn_ptr->buffer_save_ptr) = buf_data & 0xFFF;
 					chn_ptr->buffer_save_ptr++;
 					chn_ptr->buffer_count ++;
@@ -344,14 +348,12 @@ static void _ADCTSC_work(int sig_arg)
 				else {
 					ADCTSC.channel_en_clk &= ~(1 << chn_ID);	/* SW Disable this channel */
 					/* No break here , still work for clear fifo */
-//					printf("End %d\n", ADCTSC.channel_en_clk);
 				}
 			}
 		}
 		/* switch to next FIFO */
 		FIFO_ptr = FIFO_ptr->next;
 	}
-//	printf("{%d}\n", ADCTSC.channel_en_clk);
 }
 /* ----------------------------------------------------------------------------------------------- */
 /* ADCTSC fetch data
@@ -388,8 +390,8 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 
 
 	if(ADCTSC.work_mode & BBBIO_ADC_WORK_MODE_TIMER_INT) {
-	printf("Int\n");
 		ADCTSC.channel_en_clk = ADCTSC.channel_en;
+		ADCTSC.fetch_size = fetch_size;
 
 		struct itimerval ADC_t;
 		ADC_t.it_interval.tv_usec = 100;

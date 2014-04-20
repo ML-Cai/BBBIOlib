@@ -14,7 +14,8 @@ int main(void)
 	iolib_init();
 
 	/*ADC work mode : Busy polling mode  */
-	BBBIO_ADCTSC_module_ctrl(BBBIO_ADC_WORK_MODE_BUSY_POLLING, 1);
+	//BBBIO_ADCTSC_module_ctrl(BBBIO_ADC_WORK_MODE_BUSY_POLLING, 1);
+	BBBIO_ADCTSC_module_ctrl(BBBIO_ADC_WORK_MODE_TIMER_INT, 1);
 
 	/*ADC work mode : Timer interrupt mode
 	 *	Note : This mode handle SIGALRM using signale() function in BBBIO_ADCTSC_work();
@@ -34,12 +35,12 @@ int main(void)
 		printf("Channel 0 :\n");
 		for(j = 0 ; j < 10 ; j++) {
 			sample = buffer_AIN_0[j];
-			printf("[sample : %d , %f v]\n", sample, ((float)sample / 4095.0f) * 1.8f);
+			printf("\t[sample : %d , %f v]\n", sample, ((float)sample / 4095.0f) * 1.8f);
 		}
 		printf("Channel 1 :\n");
 		for(j = 0 ; j < 10 ; j++) {
 			sample = buffer_AIN_1[j];
-			printf("[sample : %d , %f v]\n", sample, ((float)sample / 4095.0f) * 1.8f);
+			printf("\t[sample : %d , %f v]\n", sample, ((float)sample / 4095.0f) * 1.8f);
                 }
 		printf("------------------------------\n");
 		sleep(1);
