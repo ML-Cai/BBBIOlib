@@ -46,9 +46,6 @@ ADXL345_NET :  ${DEMO_PATH}Demo_ADXL345/ADXL345_net.c libBBBio.a
 SEVEN_SCAN : ${DEMO_PATH}Demo_SevenScan/SevenScan.c libBBBio.a
 	gcc -o SevenScan ${DEMO_PATH}Demo_SevenScan/SevenScan.c  -L ${LIB_PATH} -lBBBio
 
-28015 :  ${DEMO_PATH}Demo_Ultrasonic28015/Ultrasonic28015.c libBBBio.a
-	gcc -o Ultrasonic28015 ${DEMO_PATH}Demo_Ultrasonic28015/Ultrasonic28015.c -L ${LIB_PATH} -lBBBio
-
 SMOTOR : ${DEMO_PATH}Demo_ServoMotor/ServoMotor.c libBBBio.a
 	gcc -o SMOTOR ${DEMO_PATH}Demo_ServoMotor/ServoMotor.c -L ${LIB_PATH} -lBBBio
 

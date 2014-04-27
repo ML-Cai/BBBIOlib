@@ -40,14 +40,6 @@ Beaglebone Black I/O Library Demo Manual.
 
 		http://www.logicsupply.com/blog/2013/07/18/disabling-the-beaglebone-black-hdmi-cape/ 
 
-
-**Ultrasonic Range sensor 28015 Demo**
-
-	Simple demo fo Ultrasonic Sensor 28015 , include 28015 datasheet.
-
-		# make 28015
-
-
 **Debouncing Demo**
 
 	This demo show an simple demo for Buttom Debouncing , using AM335x's debouncing unit.
