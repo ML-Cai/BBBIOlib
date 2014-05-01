@@ -23,7 +23,8 @@ Simple C I/O library of Beaglebone balck
 
 	V2.7	December.20 2013 - add simple McSPI control function .
 
-	V2.8	March.14 2014 - add ADC application of Arduino Microphone module ,and ADC argument calculation toolkit .
+	V2.8	March.14 2014 - add ADC application of Arduino Microphone module ,
+				and ADC argument calculation toolkit .
 
 =============================================================================================
 
@@ -63,49 +64,42 @@ Demo Directory include some demo basic this library ,each circuit layout ,pictur
 
 	4. Seven-Segment Array Display demo
 
-	5. Ultrasonic Range sensor 28015 Demo
+	5. Debouncing Demo
 
-	6. Debouncing Demo
+	6. 4x4 keypad Demo
 
-	7. 4x4 keypad Demo
+	7. PWM Demo , [using BBBIO-EHRPWM overlay]
 
-	8. PWM Demo
+	8. Servo Motor Demo , [using BBBIO-EHRPWM overlay]
 
-	9. Servo Motor Demo
+	9. ADC Demo
 
-	10. ADC Demo
-
-	11. ADC with Arduino Microphone Demo
+	10. ADC with Arduino Microphone Demo
 
 
+**overlays**
 
-**Dts :**
+BBBIO include some device tree overlays example for linux kernel 3.8.13 .
 
-In Linux kernel 3.8 ,when BBB power on ,the default pin mux mode is 7 (as GPIO mode) ,
+compile each overlays:
 
-if your device tree doesn't change the pin mux mode , the ePWM / SPI / I2C .. is unused .
+	cd overlay
 
-the register control pin mux mode is CONTROL_MODULE , but access this register need to be in privilege mode,
+	./build.sh
 
-because that , BBBio doesn't control ths register .
+apply overlay :
 
-so i try to using dtsi file to setting the pinmux mode .
+	cp {OVERLAY} /lib/firmware/
 
-**Reference from this nice blogger  :**
+	echo {OVERLAY's part-number} >> /sys/devices/bone_capemgr.*/slots
 
-	http://blog.pignology.net/2013/05/getting-uart2-devttyo1-working-on.html
+overlays list :
 
-accroding this blog , i add some dts file for pin mux .
+	1. EHRPWM0~3 overlay
 
-**Dts list :**
+		echo BBBIO-EHRPWM >> /sys/devices/bone_capemgr.*/slots
 
-	am335x-boneblack_epwmss_all.dtsi :
+Reference from :
 
-		enable epwmss0~2 / ehhrpwm0~2 , if you just nedd some of tham ,
-
-		please remove unecessary part of epwmss and ehhrpwm .
-
-		if epwmss is disable , ehhrpwm is disable too.
-
-
+	https://learn.adafruit.com/introduction-to-the-beaglebone-black-device-tree/overview
 
