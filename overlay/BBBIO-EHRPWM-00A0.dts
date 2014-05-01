@@ -25,10 +25,10 @@
 		/* the pin header uses */
 		"P9.22",        /* ehrpwm0A */
 		"P9.21",        /* ehrpwm0B */
-		"P8.36",	/* ehrpwm1A */
-		"P8.34",	/* ehrpwm1B */
-		"P8.45",	/* ehrpwm2A */
-		"P8.45",	/* ehrpwm2B */
+		"P9.14",	/* ehrpwm1A */
+		"P9.16",	/* ehrpwm1B */
+		"P8.13",	/* ehrpwm2A */
+		"P8.19",	/* ehrpwm2B */
                 /* the hardware ip uses */
 		"epwmss0",
 		"ehrpwm0",
@@ -48,14 +48,14 @@
                         };
                         bbb_ehrpwm1_pins: pinmux_bbb_ehrpwm1_pins {
                                 pinctrl-single,pins = <
-					0x0C8 0x2	/* lcd_data10.ehrpwm1A , OUTPUT_PULLDOWN | MODE2 P8_36*/
-					0x0CC 0x2	/* lcd_data11.ehrpwm1B , OUTPUT_PULLDOWN | MODE2 P8_34*/
+					0x48 0x6       /* gpmc_a2.ehrpwm1A , OUTPUT_PULLDOWN | MODE3 P9_14*/
+					0x4C 0x6       /* gpmc_a3.ehrpwm1B , OUTPUT_PULLDOWN | MODE3 P9_16*/
                                 >;	
                         };
                         bbb_ehrpwm2_pins: pinmux_bbb_ehrpwm2_pins {
                                 pinctrl-single,pins = <
-					0x0A0 0x3	/* lcd_data0.ehrpwm2A , OUTPUT_PULLDOWN | MODE3 P8_45*/
-					0x0A4 0x3	/* lcd_data1.ehrpwm2B , OUTPUT_PULLDOWN | MODE3 P8_46*/
+					0x20 0x4       /* gpmc_ad8.ehrpwm2A , OUTPUT_PULLDOWN | MODE3 P8_19*/
+					0x24 0x4       /* gpmc_ad9.ehrpwm2B , OUTPUT_PULLDOWN | MODE3 P8_13*/
                                 >;	
                         };
                 };
