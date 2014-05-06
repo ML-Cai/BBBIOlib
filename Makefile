@@ -70,6 +70,10 @@ ADC : ${DEMO_PATH}Demo_ADC/ADC.c libBBBio.a
 ADC_VOICE : ${DEMO_PATH}Demo_ADC/ADC_voice.c libBBBio.a
 	gcc -o ADC_VOICE ${DEMO_PATH}Demo_ADC/ADC_voice.c -L ${LIB_PATH} -lBBBio -lm -pthread -O3
 
+
+DAC_VOICE : ${DEMO_PATH}Demo_DAC/DAC_voice.c libBBBio.a
+	gcc -o DAC_VOICE ${DEMO_PATH}Demo_DAC/DAC_voice.c -L ${LIB_PATH} -lBBBio -lm -pthread -O3
+
 #---------------------------------------------------
 # toolkit 
 #---------------------------------------------------
@@ -91,6 +95,9 @@ ADC_CALC : ${TOOLKIT_PATH}Toolkit_ADC_CALC/ADC_CALC.c
 
 RA : ${LAB_PATH}Lab_Robot_Arm/Robot_Arm.c libBBBio.a
 	gcc -o RA  ${LAB_PATH}Lab_Robot_Arm/Robot_Arm.c -L ${LIB_PATH} -lBBBio -lm
+
+VD : ${LAB_PATH}Voice_Door/voice_door.cpp libBBBio.a
+	g++ -o VD ${LAB_PATH}Voice_Door/voice_door.cpp -L ${LIB_PATH} -lBBBio -lfftw3 -lm -pthread -O3
 
 
 .PHONY: clean

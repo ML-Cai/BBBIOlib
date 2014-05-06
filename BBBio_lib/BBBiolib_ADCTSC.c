@@ -133,9 +133,9 @@ struct ADCTSC_struct
 	unsigned int ClockDiv;	/* Clock divider , Default ADC clock :24MHz */
 	struct ADCTSC_channel_struct channel[8];
 	struct ADCTSC_FIFO_struct FIFO[2] ;
-	unsigned char channel_en ;	/* SW channel en/disable, not real channel en/disable */
-	unsigned char channel_en_clk;
-	int fetch_size ;		/* fetch size in BBBIO_ADCTSC_work function */
+	unsigned char channel_en ;	/* Const SW channel en/disable, not real channel en/disable */
+	unsigned char channel_en_var;	/* Variable  channel SW enable , for access */
+	int fetch_size;
 };
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -325,7 +325,6 @@ static void _ADCTSC_work(int sig_arg)
 	struct ADCTSC_channel_struct *chn_ptr =NULL;
 	struct ADCTSC_FIFO_struct *FIFO_ptr = ADCTSC.FIFO;
 	int i ,j;
-	unsigned int tmp_channel_en = ADCTSC.channel_en;
 
 	/* waiting FIFO buffer fetch a data*/
 	for(j = 0 ; j < 2 ; j++) {
@@ -346,7 +345,7 @@ static void _ADCTSC_work(int sig_arg)
 					chn_ptr->buffer_count ++;
 				}
 				else {
-					ADCTSC.channel_en_clk &= ~(1 << chn_ID);	/* SW Disable this channel */
+					ADCTSC.channel_en_var &= ~(1 << chn_ID);	/* SW Disable this channel */
 					/* No break here , still work for clear fifo */
 				}
 			}
@@ -373,7 +372,7 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	struct ADCTSC_channel_struct *chn_ptr =NULL;
 	struct ADCTSC_FIFO_struct *FIFO_ptr = ADCTSC.FIFO;
 	int i ;
-	unsigned int tmp_channel_en = ADCTSC.channel_en;
+//	unsigned int tmp_channel_en = ADCTSC.channel_en;
 
 	/* Start sample */
 	for(chn_ID = 0 ; chn_ID < ADCTSC_AIN_COUNT ; chn_ID++) {
@@ -387,16 +386,14 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	reg_ctrl = (void *)adctsc_ptr + ADCTSC_CTRL;
 	*reg_ctrl |= (CTRL_ENABLE | CTRL_STEP_ID_TAG);
 
-
+	ADCTSC.fetch_size = fetch_size;
+	ADCTSC.channel_en_var = ADCTSC.channel_en;
 
 	if(ADCTSC.work_mode & BBBIO_ADC_WORK_MODE_TIMER_INT) {
-		ADCTSC.channel_en_clk = ADCTSC.channel_en;
-		ADCTSC.fetch_size = fetch_size;
-
 		struct itimerval ADC_t;
-		ADC_t.it_interval.tv_usec = 100;
+		ADC_t.it_interval.tv_usec = 300;
 		ADC_t.it_interval.tv_sec = 0;
-		ADC_t.it_value.tv_usec = 100;
+		ADC_t.it_value.tv_usec = 300;
 		ADC_t.it_value.tv_sec = 0;
 
 		signal(SIGALRM, _ADCTSC_work);
@@ -404,7 +401,7 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 			printf("setitimer error\n");
 			return 0;
 		}
-		while(ADCTSC.channel_en_clk !=0) {
+		while(ADCTSC.channel_en_var !=0) {
 			usleep(100000);
 		}
 		ADC_t.it_interval.tv_usec = 0;
@@ -417,7 +414,7 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 	else { /* Busy Polling mode */
 		struct timeval tv;
 		/* waiting FIFO buffer fetch a data */
-		while(tmp_channel_en !=0) {
+		while(ADCTSC.channel_en_var !=0) {
 			reg_count = FIFO_ptr->reg_count;
 			reg_data = FIFO_ptr->reg_data;
 
@@ -435,7 +432,7 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 						chn_ptr->buffer_count ++;
 					}
 					else {
-						tmp_channel_en &= ~(1 << chn_ID);	// SW Disable this channel 
+						ADCTSC.channel_en_var &= ~(1 << chn_ID);	// SW Disable this channel 
 					}
 				}
 				tv.tv_sec = 0;
