@@ -111,4 +111,4 @@ Bulldog :
 
 	Bulldog is a GPIO API for the Beaglebone Black written in Java.
 
-	gitbug : https://github.com/Datenheld/Bulldog
+	github : https://github.com/Datenheld/Bulldog
