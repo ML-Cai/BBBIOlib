@@ -242,6 +242,33 @@ void BBBIO_ADCTSC_module_ctrl(unsigned int work_type, unsigned int clkdiv)
 	}
 }
 /* ----------------------------------------------------------------------------------------------- */
+/* ADCTSC channel buffering
+ *
+ * assian new buffer for channel x , this function is desianed for multi data store application to avoid memcpy .
+ *
+ *	@param chn_ID : channel ID which need configure. (BBBIO_AIN0 ~ BBBIO_AIN6)
+ *	@param buf : buffer for store data.
+ *	@param buf_size : buffer size .
+ *
+*/
+int BBBIO_ADCTSC_channel_buffering(unsigned int chn_ID, unsigned int *buf, unsigned int buf_size) 
+{
+	/* assian buffer */
+	if(buf != NULL && buf_size > 0) {
+		ADCTSC.channel[chn_ID].buffer = buf;
+		ADCTSC.channel[chn_ID].buffer_size = buf_size;
+		ADCTSC.channel[chn_ID].buffer_save_ptr = buf;
+		ADCTSC.channel[chn_ID].buffer_count = 0;
+		ADCTSC.channel_en |= 1 << chn_ID;	/* SW channel enable */
+		return 1;
+	}
+	else {
+		ADCTSC.channel_en &= ~(1 << chn_ID);	/* SW channel disable */
+		return 0;
+	}
+}
+
+/* ----------------------------------------------------------------------------------------------- */
 /* ADCTSC channel control
  *
  * control each channel sample status . each chnnel mapped one step .
@@ -252,7 +279,7 @@ void BBBIO_ADCTSC_module_ctrl(unsigned int work_type, unsigned int clkdiv)
  *	@param open_dly : open delay ,default :0 , max :262143 .
  *	@param sample_dly : sample delat , default :1 , max :255 .
  *	@param buf : buffer for store data.
- *	@param buf_size : buffer size .
+ *	@param buf_size : buffer size.
  *
  */
 int BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int open_dly, int sample_dly, int sample_avg, unsigned int *buf, unsigned int buf_size)
@@ -293,8 +320,7 @@ int BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int open_dly, int s
 	/* set step config */
 	reg = (void *)adctsc_ptr + (ADCTSC_STEPCONFIG1 + chn_ID * 0x8);
 	*reg &= ~(0x1F) ;	/* pre-maks Mode filed */
-	*reg |= (mode | (sample_avg << 2) | (chn_ID << 19) | ((chn_ID % 2) << 26));
-
+	*reg |= (mode | (sample_avg << 2) | (chn_ID << 19) | (chn_ID << 15) | ((chn_ID % 2) << 26) );
 
 	/* set open delay */
 	if(open_dly <0 || open_dly >262143) {
@@ -391,9 +417,9 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 
 	if(ADCTSC.work_mode & BBBIO_ADC_WORK_MODE_TIMER_INT) {
 		struct itimerval ADC_t;
-		ADC_t.it_interval.tv_usec = 300;
+		ADC_t.it_interval.tv_usec = 200;
 		ADC_t.it_interval.tv_sec = 0;
-		ADC_t.it_value.tv_usec = 300;
+		ADC_t.it_value.tv_usec = 200;
 		ADC_t.it_value.tv_sec = 0;
 
 		signal(SIGALRM, _ADCTSC_work);
@@ -510,6 +536,12 @@ int BBBIO_ADCTSC_Init()
 	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN4, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
 	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN5, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
 	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN6, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
+
+	for(i =0 ;i< 16 ;i++) {
+		reg = (void *)adctsc_ptr + (ADCTSC_STEPCONFIG1 + i * 0x8);
+		printf("%X\n",*reg);
+	}
+
 
 	/* Clear FIFO  */
 	FIFO_count = *((unsigned int*)((void *)adctsc_ptr + ADCTSC_FIFO0COUNT));
