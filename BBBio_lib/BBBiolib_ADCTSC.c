@@ -182,7 +182,7 @@ static int BBBIO_ADCTSC_set_range(int L_range, int H_range)
  *	#define BBBIO_ADCTSC_channel_enable(A) BBBIO_ADCTSC_channel_status(A,1)
  *	#define BBBIO_ADCTSC_channel_disable(A)	BBBIO_ADCTSC_channel_status(A,0)
  */
-void BBBIO_ADCTSC_channel_status(int chn_ID ,int enable)
+int BBBIO_ADCTSC_channel_status(int chn_ID ,int enable)
 {
 	unsigned int *reg = NULL;
 
@@ -190,6 +190,7 @@ void BBBIO_ADCTSC_channel_status(int chn_ID ,int enable)
 #ifdef BBBIO_LIB_DBG
 		fprintf(stderr, "BBBIO_ADCTSC_Channel_status : Channel ID error [%d]\n", chn_ID);
 #endif
+		return 0;
 	}
 	else {
 		/* step enable */
@@ -208,6 +209,7 @@ void BBBIO_ADCTSC_channel_status(int chn_ID ,int enable)
 		ADCTSC.channel[chn_ID].buffer_count = 0;
 		ADCTSC.channel[chn_ID].buffer_save_ptr = ADCTSC.channel[chn_ID].buffer;
 	}
+	return 1;
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -428,7 +430,7 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 			return 0;
 		}
 		while(ADCTSC.channel_en_var !=0) {
-			usleep(100000);
+			usleep(10000);
 		}
 		ADC_t.it_interval.tv_usec = 0;
 		ADC_t.it_interval.tv_sec = 0;
@@ -461,9 +463,9 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 						ADCTSC.channel_en_var &= ~(1 << chn_ID);	// SW Disable this channel 
 					}
 				}
-				tv.tv_sec = 0;
-				tv.tv_usec = 40;
-				select(0, NULL, NULL, NULL, &tv);
+//				tv.tv_sec = 0;
+//				tv.tv_usec = 40;
+//				select(0, NULL, NULL, NULL, &tv);
 			}
 			// switch to next FIFO 
 			FIFO_ptr = FIFO_ptr->next;
@@ -536,12 +538,6 @@ int BBBIO_ADCTSC_Init()
 	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN4, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
 	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN5, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
 	BBBIO_ADCTSC_channel_ctrl(BBBIO_ADC_AIN6, BBBIO_ADC_STEP_MODE_SW_ONE_SHOOT, 0, 1, BBBIO_ADC_STEP_AVG_1, NULL, 0);
-
-	for(i =0 ;i< 16 ;i++) {
-		reg = (void *)adctsc_ptr + (ADCTSC_STEPCONFIG1 + i * 0x8);
-		printf("%X\n",*reg);
-	}
-
 
 	/* Clear FIFO  */
 	FIFO_count = *((unsigned int*)((void *)adctsc_ptr + ADCTSC_FIFO0COUNT));

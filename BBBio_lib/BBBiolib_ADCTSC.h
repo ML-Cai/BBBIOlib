@@ -36,6 +36,6 @@ void BBBIO_ADCTSC_module_ctrl(unsigned int work_type, unsigned int clkdiv);
 #define BBBIO_ADCTSC_channel_enable(A) BBBIO_ADCTSC_channel_status(A,1)
 #define BBBIO_ADCTSC_channel_disable(A) BBBIO_ADCTSC_channel_status(A,0)
 
-void BBBIO_ADCTSC_channel_status(int chn_ID ,int enable);
+int BBBIO_ADCTSC_channel_status(int chn_ID ,int enable);
 /* ------------------------------------------------------------------------- */
 #endif
