@@ -85,12 +85,12 @@ volatile unsigned int *mcspi_ptr[MCSPI_ARG_CHANNEL_COUNT] ={NULL};
 
 struct BBBIO_McSPI_struct McSPI_Module[MCSPI_ARG_MODULE_COUNT] ={0} ;
 /* ----------------------------------------------------------------------------------------------- */
-inline void write_reg(volatile void *reg_base ,unsigned int offset ,unsigned int data)
+static inline void write_reg(volatile void *reg_base ,unsigned int offset ,unsigned int data)
 {
 	*((volatile unsigned int* )(reg_base+offset)) = data;
 }
 /* ----------------------------------------------------------------------------------------------- */
-inline unsigned int read_reg(volatile void *reg_base ,unsigned int offset)
+static inline unsigned int read_reg(volatile void *reg_base ,unsigned int offset)
 {
 	return *((volatile unsigned int* )(reg_base+offset));
 }

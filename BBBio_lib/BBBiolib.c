@@ -978,17 +978,17 @@ const unsigned int BBBIO_GPIO_SAFE_MASK [] ={
 1<<1 | 1<<2 | 1<<3 | 1<<4 | 1<<5 | 1<<6 | 1<<7 | 1<<8 | 1<<9 | 1<<10 | 1<<11 | 1<<12 | 1<<13 | 1<<14 | 1<<15 | 1<<16 | 1<<17 | 1<<22 | 1<<23 | 1<<24 | 1<<25 ,  // GPIO 2
 1<<14 | 1<<15 | 1<<16 | 1<<17 | 1<<18 | 1<<20 | 1<<19 | 1<<21 };        // GPIO 3
 
-inline void BBBIO_GPIO_high(unsigned int gpio ,unsigned int pinset)
+void BBBIO_GPIO_high(unsigned int gpio ,unsigned int pinset)
 {
 	*((unsigned int *)((void *)gpio_addr[gpio]+BBBIO_GPIO_SETDATAOUT)) = pinset & BBBIO_GPIO_SAFE_MASK[gpio] ;
 }
 
-inline void BBBIO_GPIO_low(unsigned int gpio ,unsigned int pinset)
+void BBBIO_GPIO_low(unsigned int gpio ,unsigned int pinset)
 {
 	*((unsigned int *)((void *)gpio_addr[gpio]+BBBIO_GPIO_CLEARDATAOUT)) = pinset &  BBBIO_GPIO_SAFE_MASK[gpio];
 }
 
-inline int BBBIO_GPIO_get(char gpio, unsigned int pinset)
+int BBBIO_GPIO_get(char gpio, unsigned int pinset)
 {
 	 return *((unsigned int *)((void *)gpio_addr[gpio]+BBBIO_GPIO_DATAIN)) & pinset;
 }
