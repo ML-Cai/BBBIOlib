@@ -38,7 +38,7 @@
 #define BBBIO_DIR_OUT 1
 
 
-/* -----------------------------------------------------------------------
+/* ----------------------------------------------------------------------- */
 /* enable pinmux functionality
  * not implemented yet (User space not support , privilige invalid)
  */
@@ -220,7 +220,7 @@ int BBBIO_sys_pinmux_check(unsigned int port, unsigned int pin, unsigned int Cfl
 #define BBBIO_CONF_TDO		0x9D8
 #define BBBIO_CONF_TCK		0x9DC
 
-/* ----------------------------------------------------------------------
+/* ---------------------------------------------------------------------- */
 /* Clock Module Peripheral Registers
  *	@Source : AM335x Technical Reference Manual ,page 916 , Table 8-29. CM_PER REGISTERS
  *
