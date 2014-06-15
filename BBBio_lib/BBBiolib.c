@@ -727,6 +727,7 @@ int  BBBIO_sys_Disable_Debouncing(unsigned int port ,unsigned int pin ,unsigned 
 	/* setting Debouncing time */
       	reg = (void *)gpio_addr[PortSet_ptr[port][pin]] +BBBIO_GPIO_DEBOUNCINGTIME ;
       	*reg = GDB_time ;
+  return 0;
 }
 
 //-----------------------------------------------------------------------------------------------
