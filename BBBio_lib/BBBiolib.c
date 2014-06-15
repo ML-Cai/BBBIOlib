@@ -175,11 +175,8 @@ int iolib_free(void)
  */
 int iolib_setdir(char port, char pin, char dir)
 {
-	int i;
 	int param_error=0;			// parameter error
 	volatile unsigned int* reg;		// GPIO register
-	int reg_port = port -8;			// port number of register process
-	int reg_pin = pin -1;			// pin id of register process
 
 	// sanity checks
 	if (memh == 0)

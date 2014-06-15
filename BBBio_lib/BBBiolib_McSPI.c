@@ -141,8 +141,6 @@ int BBBIO_McSPI_work(unsigned int McSPI_ID)
 
 	/* check CM_PER enable status, or it may caue "Bus error" signal message. */
 	if(McSPI_Module[McSPI_ID].CM_PER_enable) {
-		struct BBBIO_McSPI_CH_struct *CH_ptr = &McSPI_Module[McSPI_ID].CH[0] ;
-
 		for(chn =0 ; chn < MCSPI_ARG_CHANNEL_COUNT ; chn ++) {
 			if(McSPI_Module[McSPI_ID].CH[chn].status &McSPI_CH_ENABLE) {
 				chn_offset = chn * MCSPI_CH_REG_OFFSET ;
@@ -198,8 +196,6 @@ int BBBIO_McSPI_Setting(unsigned int McSPI_ID ,
 			unsigned int DataDir ,		/* IS/DPE1/DPE0		,data0 Output data1 Input ,or data0 Input data1 Output */
 			unsigned int WL)		/* WL 			,word length */
 {
-	volatile unsigned int* reg;
-	unsigned int reg_value ;
 	unsigned int chn_offset =channel *0x14;
 
 	/* check CM_PER enable status, or it may caue "Bus error" signal message. */
@@ -269,7 +265,6 @@ int BBBIO_McSPI_EP_check(unsigned int McSPI_ID)
 
 int BBBIO_McSPI_CLK_set(unsigned int McSPI_ID ,int enable , int idle)
 {
-	volatile unsigned int* reg = NULL;
 	const unsigned int CM_PER_McSPI[] = {BBBIO_CM_PER_SPI0_CLKCTRL, BBBIO_CM_PER_SPI1_CLKCTRL};
 
 	if(McSPI_ID > 1) {

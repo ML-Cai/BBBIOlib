@@ -130,7 +130,6 @@ static int PWMSS_module_ctrl(unsigned int PWMSS_ID, int enable)
 int BBBIO_PWM_Init()
 {
 	int i = 0;
-	volatile unsigned int* reg;
 
 	if (memh == 0) {
 #ifdef BBBIO_LIB_DBG
