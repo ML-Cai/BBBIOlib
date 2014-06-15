@@ -16,11 +16,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <time.h>
+#include <string.h>
 #include "BBBiolib.h"
 /*
 #include "BBBiolib_PWMSS.h"
