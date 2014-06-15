@@ -272,7 +272,7 @@ int BBBIO_McSPI_CLK_set(unsigned int McSPI_ID ,int enable , int idle)
 	volatile unsigned int* reg = NULL;
 	const unsigned int CM_PER_McSPI[] = {BBBIO_CM_PER_SPI0_CLKCTRL, BBBIO_CM_PER_SPI1_CLKCTRL};
 
-	if(McSPI_ID > 1 || McSPI_ID < 0) {
+	if(McSPI_ID > 1) {
 #ifdef BBBIO_LIB_DBG
 		printf("BBBIO_McSPI_CLK_set: Unknow McSPI module ID : %d\n", McSPI_ID);
 #endif

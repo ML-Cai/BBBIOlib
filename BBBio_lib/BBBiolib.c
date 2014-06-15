@@ -632,7 +632,7 @@ int  BBBIO_sys_Enable_Debouncing(unsigned int port ,unsigned int pin ,unsigned i
             param_error=1;
         if (PortSet_ptr[port][pin]<0)   // pass GND OR VCC (PortSet as -1)
             param_error=1;
-	if(GDB_time <0 || GDB_time >255)
+	if(GDB_time >255)
 	    param_error=1;
 
         if (param_error) {
@@ -698,7 +698,7 @@ int  BBBIO_sys_Disable_Debouncing(unsigned int port ,unsigned int pin ,unsigned 
             param_error = 1;
         if (PortSet_ptr[port][pin] < 0)   /* pass GND OR VCC (PortSet as -1) */
             param_error = 1;
-        if(GDB_time < 0 || GDB_time > 255)
+        if(GDB_time > 255)
             param_error = 1;
 
         if (param_error) {
@@ -751,7 +751,7 @@ int BBBIO_sys_Enable_GPIO(unsigned int gpio)		// Enable GPIOx's clock
 	// sanity checks
 	if (cm_per_addr==0)
 		param_error=1;
-	if (gpio <0 || gpio >3)	//GPIO range
+	if (gpio >3)	//GPIO range
 		param_error=1;
 
 	if (param_error) {
@@ -805,7 +805,7 @@ int BBBIO_sys_Disable_GPIO(unsigned int gpio)		// Disable GPIOx's clock
 	// sanity checks
 	if (cm_per_addr==0)
 		param_error=1;
-	if (gpio <0 || gpio >3)	//GPIO range
+	if (gpio >3)	//GPIO range
 		param_error=1;
 
 	if (param_error) {
@@ -931,7 +931,7 @@ int BBBIO_GPIO_set_dir(unsigned int  gpio, unsigned int inset , unsigned int out
         if (memh == 0)			/* sanity checks */
                 param_error = 1;
 
-        if (gpio < 0 || gpio > 3) 	/* GPIO range */
+        if (gpio > 3) 	/* GPIO range */
                 param_error = 1;
 
         if (inset == 0 && outset == 0)	/* pin identify error */
