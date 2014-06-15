@@ -16,6 +16,11 @@
 
 #ifndef _BBBIOLIB_H_
 #define _BBBIOLIB_H_
+
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 /* ----------------------------------------------------------------------- */
 #include "BBBiolib_PWMSS.h"
 #include "BBBiolib_McSPI.h"
@@ -388,6 +393,10 @@ int BBBIO_GPIO_set_dir(unsigned int gpio, unsigned int inset , unsigned int outs
 void BBBIO_GPIO_high(unsigned int gpio ,unsigned int pinset);
 void BBBIO_GPIO_low(unsigned int gpio ,unsigned int pinset);
 int BBBIO_GPIO_get(char gpio, unsigned int pinset);
+
+#ifdef __cplusplus
+ }
+#endif
 
 #endif // _IOLIB_H_
 
