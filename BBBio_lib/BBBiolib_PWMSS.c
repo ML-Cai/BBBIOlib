@@ -130,7 +130,6 @@ static int PWMSS_module_ctrl(unsigned int PWMSS_ID, int enable)
 int BBBIO_PWM_Init()
 {
 	int i = 0;
-	volatile unsigned int* reg;
 
 	if (memh == 0) {
 #ifdef BBBIO_LIB_DBG
@@ -195,7 +194,7 @@ int BBBIO_PWMSS_Status(unsigned int PWMID)
 	if (memh == 0)
             param_error = 0;
 
-    	if ((PWMID < 0) || (PWMID > 2))		/* if input is not EPWMSS 0~ WPEMSS 2 */
+    	if (PWMID > 2)		/* if input is not EPWMSS 0~ WPEMSS 2 */
             param_error = 0;
 
     	if (param_error == 0) {
@@ -266,7 +265,7 @@ int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
 	volatile unsigned short* reg16 ;
         if (memh == 0)
             param_error = 0;
-        if ((PWMID < 0) || (PWMID > 2))              // if input is not EPWMSS 0~ WPEMSS 2
+        if (PWMID > 2)              // if input is not EPWMSS 0~ WPEMSS 2
             param_error = 0;
 	if (HZ < 0 )
 	    param_error = 0;

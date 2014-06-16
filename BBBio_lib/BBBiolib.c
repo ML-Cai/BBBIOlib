@@ -16,11 +16,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <time.h>
+#include <string.h>
 #include "BBBiolib.h"
 /*
 #include "BBBiolib_PWMSS.h"
@@ -173,11 +175,8 @@ int iolib_free(void)
  */
 int iolib_setdir(char port, char pin, char dir)
 {
-	int i;
 	int param_error=0;			// parameter error
 	volatile unsigned int* reg;		// GPIO register
-	int reg_port = port -8;			// port number of register process
-	int reg_pin = pin -1;			// pin id of register process
 
 	// sanity checks
 	if (memh == 0)
@@ -239,7 +238,7 @@ int iolib_delay_ms(unsigned int msec)
 		fprintf(stderr, "delay_ms error: delay value needs to be less than 999\n");
 		msec = 999;
 	}
-	a.tv_nsec = ((long)(msec))*1E6d;
+	a.tv_nsec = ((long)(msec)) * 1000000;
 	a.tv_sec = 0;
 	if ((ret = nanosleep(&a, NULL)) != 0) {
 		fprintf(stderr, "delay_ms error: %s\n", strerror(errno));
@@ -630,7 +629,7 @@ int  BBBIO_sys_Enable_Debouncing(unsigned int port ,unsigned int pin ,unsigned i
             param_error=1;
         if (PortSet_ptr[port][pin]<0)   // pass GND OR VCC (PortSet as -1)
             param_error=1;
-	if(GDB_time <0 || GDB_time >255)
+	if(GDB_time >255)
 	    param_error=1;
 
         if (param_error) {
@@ -696,7 +695,7 @@ int  BBBIO_sys_Disable_Debouncing(unsigned int port ,unsigned int pin ,unsigned 
             param_error = 1;
         if (PortSet_ptr[port][pin] < 0)   /* pass GND OR VCC (PortSet as -1) */
             param_error = 1;
-        if(GDB_time < 0 || GDB_time > 255)
+        if(GDB_time > 255)
             param_error = 1;
 
         if (param_error) {
@@ -725,6 +724,7 @@ int  BBBIO_sys_Disable_Debouncing(unsigned int port ,unsigned int pin ,unsigned 
 	/* setting Debouncing time */
       	reg = (void *)gpio_addr[PortSet_ptr[port][pin]] +BBBIO_GPIO_DEBOUNCINGTIME ;
       	*reg = GDB_time ;
+  return 0;
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -748,7 +748,7 @@ int BBBIO_sys_Enable_GPIO(unsigned int gpio)		// Enable GPIOx's clock
 	// sanity checks
 	if (cm_per_addr==0)
 		param_error=1;
-	if (gpio <0 || gpio >3)	//GPIO range
+	if (gpio >3)	//GPIO range
 		param_error=1;
 
 	if (param_error) {
@@ -802,7 +802,7 @@ int BBBIO_sys_Disable_GPIO(unsigned int gpio)		// Disable GPIOx's clock
 	// sanity checks
 	if (cm_per_addr==0)
 		param_error=1;
-	if (gpio <0 || gpio >3)	//GPIO range
+	if (gpio >3)	//GPIO range
 		param_error=1;
 
 	if (param_error) {
@@ -928,7 +928,7 @@ int BBBIO_GPIO_set_dir(unsigned int  gpio, unsigned int inset , unsigned int out
         if (memh == 0)			/* sanity checks */
                 param_error = 1;
 
-        if (gpio < 0 || gpio > 3) 	/* GPIO range */
+        if (gpio > 3) 	/* GPIO range */
                 param_error = 1;
 
         if (inset == 0 && outset == 0)	/* pin identify error */
@@ -975,17 +975,17 @@ const unsigned int BBBIO_GPIO_SAFE_MASK [] ={
 1<<1 | 1<<2 | 1<<3 | 1<<4 | 1<<5 | 1<<6 | 1<<7 | 1<<8 | 1<<9 | 1<<10 | 1<<11 | 1<<12 | 1<<13 | 1<<14 | 1<<15 | 1<<16 | 1<<17 | 1<<22 | 1<<23 | 1<<24 | 1<<25 ,  // GPIO 2
 1<<14 | 1<<15 | 1<<16 | 1<<17 | 1<<18 | 1<<20 | 1<<19 | 1<<21 };        // GPIO 3
 
-inline void BBBIO_GPIO_high(unsigned int gpio ,unsigned int pinset)
+void BBBIO_GPIO_high(unsigned int gpio ,unsigned int pinset)
 {
 	*((unsigned int *)((void *)gpio_addr[gpio]+BBBIO_GPIO_SETDATAOUT)) = pinset & BBBIO_GPIO_SAFE_MASK[gpio] ;
 }
 
-inline void BBBIO_GPIO_low(unsigned int gpio ,unsigned int pinset)
+void BBBIO_GPIO_low(unsigned int gpio ,unsigned int pinset)
 {
 	*((unsigned int *)((void *)gpio_addr[gpio]+BBBIO_GPIO_CLEARDATAOUT)) = pinset &  BBBIO_GPIO_SAFE_MASK[gpio];
 }
 
-inline int BBBIO_GPIO_get(char gpio, unsigned int pinset)
+int BBBIO_GPIO_get(char gpio, unsigned int pinset)
 {
 	 return *((unsigned int *)((void *)gpio_addr[gpio]+BBBIO_GPIO_DATAIN)) & pinset;
 }

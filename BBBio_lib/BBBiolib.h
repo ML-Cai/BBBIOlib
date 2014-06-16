@@ -16,6 +16,11 @@
 
 #ifndef _BBBIOLIB_H_
 #define _BBBIOLIB_H_
+
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 /* ----------------------------------------------------------------------- */
 #include "BBBiolib_PWMSS.h"
 #include "BBBiolib_McSPI.h"
@@ -38,7 +43,7 @@
 #define BBBIO_DIR_OUT 1
 
 
-/* -----------------------------------------------------------------------
+/* ----------------------------------------------------------------------- */
 /* enable pinmux functionality
  * not implemented yet (User space not support , privilige invalid)
  */
@@ -220,7 +225,7 @@ int BBBIO_sys_pinmux_check(unsigned int port, unsigned int pin, unsigned int Cfl
 #define BBBIO_CONF_TDO		0x9D8
 #define BBBIO_CONF_TCK		0x9DC
 
-/* ----------------------------------------------------------------------
+/* ---------------------------------------------------------------------- */
 /* Clock Module Peripheral Registers
  *	@Source : AM335x Technical Reference Manual ,page 916 , Table 8-29. CM_PER REGISTERS
  *
@@ -385,9 +390,13 @@ inline char BBBIO_get(char port, char pin);
 #define BBBIO_GPIO_PIN_31	(1<< 31)
 
 int BBBIO_GPIO_set_dir(unsigned int gpio, unsigned int inset , unsigned int outset);
-inline void BBBIO_GPIO_high(unsigned int gpio ,unsigned int pinset);
-inline void BBBIO_GPIO_low(unsigned int gpio ,unsigned int pinset);
-inline int BBBIO_GPIO_get(char gpio, unsigned int pinset);
+void BBBIO_GPIO_high(unsigned int gpio ,unsigned int pinset);
+void BBBIO_GPIO_low(unsigned int gpio ,unsigned int pinset);
+int BBBIO_GPIO_get(char gpio, unsigned int pinset);
+
+#ifdef __cplusplus
+ }
+#endif
 
 #endif // _IOLIB_H_
 

@@ -346,7 +346,6 @@ static void _ADCTSC_work(int sig_arg)
 {
 	unsigned int *reg_count = NULL;
 	unsigned int *reg_data = NULL;
-	unsigned int *reg_ctrl = NULL;
 	unsigned int buf_data = 0;
 	int FIFO_count = 0;
 	int chn_ID =0;
@@ -440,7 +439,6 @@ unsigned int BBBIO_ADCTSC_work(unsigned int fetch_size)
 		signal(SIGALRM, NULL);
 	}
 	else { /* Busy Polling mode */
-		struct timeval tv;
 		/* waiting FIFO buffer fetch a data */
 		while(ADCTSC.channel_en_var !=0) {
 			reg_count = FIFO_ptr->reg_count;
