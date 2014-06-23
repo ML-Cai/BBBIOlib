@@ -343,11 +343,7 @@ int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
 */
 		/* setting clock diver and freeze time base */
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_TBCTL;
-		*reg16 = TBCTL_CTRMODE_UP | (NearCLKDIV << 10) | (NearHSPCLKDIV << 7);
-
-		/* reset time base counter */
-		reg16 = (void *)epwm_ptr[PWMID] + EPWM_TBCNT;
-		*reg16 = 0;
+		*reg16 = TBCTL_CTRMODE_UP | (NearCLKDIV << 10) | (NearHSPCLKDIV << 7) | 0x3;
 
 		/*  setting duty A and duty B */
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_CMPB;
@@ -360,10 +356,14 @@ int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
 		*reg16 =(unsigned short)NearTBPRD;
 
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_AQCTLA;
-		*reg16 = (0x1) | ( 0x3 << 4) ;
+		*reg16 = 0x1 | ( 0x3 << 4) ;
 
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_AQCTLB;
-		*reg16 = (0x1) | ( 0x3 << 8) ;
+		*reg16 = 0x1 | ( 0x3 << 8) ;
+
+		/* reset time base counter */
+		reg16 = (void *)epwm_ptr[PWMID] + EPWM_TBCNT;
+		*reg16 = 0;
 	}
 	return 1;
 }
