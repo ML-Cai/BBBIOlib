@@ -42,6 +42,8 @@ ADXL345 :  ${DEMO_PATH}Demo_ADXL345/ADXL345.c libBBBio.a
 ADXL345_NET :  ${DEMO_PATH}Demo_ADXL345/ADXL345_net.c libBBBio.a
 	gcc -o ADXL345 ${DEMO_PATH}Demo_ADXL345/ADXL345_net.c -L ${LIB_PATH} -lBBBio
 
+L3G4200D : ${DEMO_PATH}Demo_L3G4200D/L3G4200D.c libBBBio.a
+	gcc -o L3G4200D ${DEMO_PATH}Demo_L3G4200D/L3G4200D.c -L ${LIB_PATH} -lBBBio
 
 SEVEN_SCAN : ${DEMO_PATH}Demo_SevenScan/SevenScan.c libBBBio.a
 	gcc -o SevenScan ${DEMO_PATH}Demo_SevenScan/SevenScan.c  -L ${LIB_PATH} -lBBBio
@@ -102,5 +104,5 @@ VD : ${LAB_PATH}Voice_Door/voice_door.cpp libBBBio.a
 
 .PHONY: clean
 clean :
-	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_CLK_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO Debouncing 4x4keypad EP_status PWM RA ADXL345 ADC ADC_CALC
+	rm -rf ${LIB_PATH}*.o ${LIB_PATH}libBBBio.a libBBBio.a LED ADT7301 GPIO_CLK_status SevenScan Ultrasonic28015 TMP SMOTOR LED_GPIO Debouncing 4x4keypad EP_status PWM RA ADXL345 ADC ADC_CALC L3G4200D
 

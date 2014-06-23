@@ -49,7 +49,7 @@ unsigned int BBBIO_McSPI_Rx(unsigned int McSPI_ID ,unsigned int channel ) ;
 #define BBBIO_McSPI_Disable(a) BBBIO_McSPI_CLK_set(a,0,0)
 int BBBIO_McSPI_CLK_set(unsigned int McSPI_ID ,int enable , int idle) ;
 
-int BBBIO_McSPI_Setting(unsigned int McSPI_ID ,
+int BBBIO_McSPI_channel_ctrl(unsigned int McSPI_ID ,
                         unsigned int channel,
                         unsigned int MS,		/* MS		 , maset or slave */
                         unsigned int TRM ,		/* TRM		 , Tx only / Rx only , TxRx */

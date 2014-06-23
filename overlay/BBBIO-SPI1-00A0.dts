@@ -1,0 +1,55 @@
+/*
+ * Copyright (C) 2014
+ *
+ * Virtual cape for ehrPWM0, ehrPWM1, ehrPWM2 on connector pins P9.29 P9.31.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+ 
+/ {
+   	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+        /* identification */
+	part-number = "BBB-SPI1";
+	version = "00A0";
+
+
+	/* state the resources this cape uses */
+	exclusive-use =
+		/* the pin header uses */
+		"P9.28",        /* SPI1_CS0 */
+		"P9.29",        /* SPI1_D0 */
+		"P9.30",	/* SPI1_D1 */
+		"P9.31",	/* SPI1_SCLK */
+                /* the hardware ip uses */
+		"spi1";
+ 
+        fragment@0 {
+                target = <&am33xx_pinmux>;
+                __overlay__ {
+                        bbb_spi1_pins: pinmux_bbb_ehrpwm0_pins {
+                                pinctrl-single,pins = <
+					0x190 0x23    /* P9_31 = mcasp0_aclkx.spi1_sclk	, INPUT/OUTPUT_PULLUP | MODE3 */
+					0x194 0x23    /* P9_29 = mcasp0_fsx.spi1_d0	, INPUT/OUTPUT_PULLUP | MODE3 */
+					0x198 0x23    /* P9_30 = mcasp0_axr0.spi1_d1	, INPUT/OUTPUT_PULLUP | MODE3 */
+					0x19c 0x23    /* P9_28 = mcasp0_ahclkr.spi1_cs0	, INPUT/OUTPUT_PULLUP | MODE3 */ 
+				>;	
+			};
+                };
+        };
+ 
+	fragment@1 {
+                target = <&spi1>;
+                __overlay__ {
+                        status = "okay";
+                        pinctrl-names = "default";
+			pinctrl-0 = <&bbb_spi1_pins>;
+                };
+        };
+};

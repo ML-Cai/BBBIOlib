@@ -8,7 +8,7 @@
 #include <time.h>
 #include "BBBiolib.h"
 #include "BBBiolib_McSPI.h"
-//-----------------------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------------------------- */
 /* Argument define */
 
 /* McSPI module have 4channel , but only pinout2 */
@@ -45,7 +45,7 @@
 #define MCSPI_GET_CHSTAT_RXS(a)	(a&0x01)
 
 #define MCSPI_GET_SYSSTATUS_RESETDONE(a)	(a&0x01)
-//-----------------------------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------------------------- */
 /* struct definition */
 
 #define McSPI_TxRx_Tx		0x01
@@ -66,7 +66,10 @@ struct BBBIO_McSPI_TxRx_struct
 struct BBBIO_McSPI_CH_struct
 {
 	int status ;
-	struct BBBIO_McSPI_TxRx_struct TxRx ;
+//	struct BBBIO_McSPI_TxRx_struct data ;
+	unsigned int Tx ;
+	unsigned int Rx ;
+	unsigned int flag ;
 };
 
 /* McSPI module struct */
@@ -123,13 +126,55 @@ int BBBIO_McSPI_Init()
 /* Set Transmit data */
 void BBBIO_McSPI_Tx(unsigned int McSPI_ID ,unsigned int channel ,unsigned int data)
 {
-	McSPI_Module[McSPI_ID].CH[channel].TxRx.Tx =data;
+	McSPI_Module[McSPI_ID].CH[channel].Tx = data ;
+//	printf("Tx : %X\n", data);
 }
+
 /* ----------------------------------------------------------------------------------------------- */
 /* Receive data */
 unsigned int BBBIO_McSPI_Rx(unsigned int McSPI_ID ,unsigned int channel )
 {
-	return McSPI_Module[McSPI_ID].CH[channel].TxRx.Rx ;
+	return McSPI_Module[McSPI_ID].CH[channel].Rx ;
+} 
+/* ----------------------------------------------------------------------------------------------- */
+int BBBIO_McSPI_channel_ctrl(unsigned int McSPI_ID ,		/* SPI module ID , am335x have SPI1 and SPI0*/
+				unsigned int channel ,		/* channel ID , channel 0~3 */
+				unsigned int MS , 		/* MS 			, maset or slave */
+				unsigned int TRM ,		/* TRM 			, Tx only / Rx only , TxRx */
+				unsigned int CLK_div ,		/* Clock Divider	, default clock : 48M Hz */
+				unsigned int CLKmode ,		/* POL/PHA 		, Clock polarity */
+				unsigned int EPOL , 		/* EPOL 		, SPI EN polarity */
+				unsigned int DataDir ,		/* IS/DPE1/DPE0		, data0 Output data1 Input ,or data0 Input data1 Output */
+				unsigned int WL)		/* WL 			, word length */
+{
+	unsigned int chn_offset =channel * 0x14;
+
+	/* check CM_PER enable status, or it may caue "Bus error" signal message. */
+        if(McSPI_Module[McSPI_ID].CM_PER_enable) {
+		/* disable channel */
+		write_reg(mcspi_ptr[McSPI_ID], MCSPI_CH0CTRL + chn_offset, 0);
+
+		/* channel setting  */
+		write_reg(mcspi_ptr[McSPI_ID], MCSPI_MODULCTRL, MS << 2);
+ 		write_reg(mcspi_ptr[McSPI_ID], MCSPI_CH0CONF + chn_offset, (DataDir << 16 | TRM << 12 | (WL - 1) << 7 | EPOL << 6 | CLK_div << 2 | CLKmode));
+
+		if(TRM != BBBIO_McSPI_Tx_Only) {
+			McSPI_Module[McSPI_ID].CH[channel].flag |= McSPI_TxRx_Rx ;
+			McSPI_Module[McSPI_ID].CH[channel].Rx =0;
+		}
+	        if(TRM != BBBIO_McSPI_Rx_Only) {
+        	        McSPI_Module[McSPI_ID].CH[channel].flag |= McSPI_TxRx_Tx ;
+			McSPI_Module[McSPI_ID].CH[channel].Tx =0;
+		}
+		McSPI_Module[McSPI_ID].CH[channel].status |=McSPI_CH_ENABLE;
+	}
+        else {
+#ifdef BBBIO_LIB_DBG
+		printf("BBBIO_McSPI_work: McSPI %d CM_PER Clock Gating!\n",McSPI_ID);
+#endif
+                return 0 ;
+        }
+	return 1 ;
 }
 /* ----------------------------------------------------------------------------------------------- */
 /* McSPI module work */
@@ -142,15 +187,15 @@ int BBBIO_McSPI_work(unsigned int McSPI_ID)
 	/* check CM_PER enable status, or it may caue "Bus error" signal message. */
 	if(McSPI_Module[McSPI_ID].CM_PER_enable) {
 		for(chn =0 ; chn < MCSPI_ARG_CHANNEL_COUNT ; chn ++) {
-			if(McSPI_Module[McSPI_ID].CH[chn].status &McSPI_CH_ENABLE) {
+			if(McSPI_Module[McSPI_ID].CH[chn].status & McSPI_CH_ENABLE) {
 				chn_offset = chn * MCSPI_CH_REG_OFFSET ;
 
 				/* channel enable */
 				write_reg(mcspi_ptr[McSPI_ID], MCSPI_CH0CTRL + chn_offset, 1);
 
 				/* set transform data */
-				if(McSPI_Module[McSPI_ID].CH[chn].TxRx.flag & McSPI_TxRx_Tx) {
-					write_reg(mcspi_ptr[McSPI_ID], MCSPI_TX0 +chn_offset, McSPI_Module[McSPI_ID].CH[chn].TxRx.Tx );
+				if(McSPI_Module[McSPI_ID].CH[chn].flag & McSPI_TxRx_Tx) {
+					write_reg(mcspi_ptr[McSPI_ID], MCSPI_TX0 +chn_offset, McSPI_Module[McSPI_ID].CH[chn].Tx );
 				}
 				else {	/* must set a dummy data in Tx reigster of receive only mode .*/
 					write_reg(mcspi_ptr[McSPI_ID], MCSPI_TX0 +chn_offset, 0);
@@ -168,8 +213,8 @@ int BBBIO_McSPI_work(unsigned int McSPI_ID)
 				}
 
 				/* copy receive data */
-				if(McSPI_Module[McSPI_ID].CH[chn].TxRx.flag & McSPI_TxRx_Rx) {
-					McSPI_Module[McSPI_ID].CH[chn].TxRx.Rx = read_reg(mcspi_ptr[McSPI_ID], MCSPI_RX0 + chn_offset);
+				if(McSPI_Module[McSPI_ID].CH[chn].flag & McSPI_TxRx_Rx) {
+					McSPI_Module[McSPI_ID].CH[chn].Rx = read_reg(mcspi_ptr[McSPI_ID], MCSPI_RX0 + chn_offset);
 				}
 
 				/* channel disable */
@@ -183,42 +228,6 @@ int BBBIO_McSPI_work(unsigned int McSPI_ID)
 #endif
 		return 0 ;
 	}
-	return 1 ;
-}
-/* ----------------------------------------------------------------------------------------------- */
-int BBBIO_McSPI_Setting(unsigned int McSPI_ID ,
-			unsigned int channel,
-			unsigned int MS, 		/* MS 			,maset or slave */
-			unsigned int TRM ,		/* TRM 			,Tx only / Rx only , TxRx */
-			unsigned int CLK_div ,		/* clock divider	, default clock : 48M Hz */
-			unsigned int CLKmode ,		/* POL/PHA ,		,clock polarity */
-			unsigned int EPOL ,
-			unsigned int DataDir ,		/* IS/DPE1/DPE0		,data0 Output data1 Input ,or data0 Input data1 Output */
-			unsigned int WL)		/* WL 			,word length */
-{
-	unsigned int chn_offset =channel *0x14;
-
-	/* check CM_PER enable status, or it may caue "Bus error" signal message. */
-        if(McSPI_Module[McSPI_ID].CM_PER_enable) {
-		/* disable channel */
-		write_reg(mcspi_ptr[McSPI_ID], MCSPI_CH0CTRL + chn_offset, 0);
-		write_reg(mcspi_ptr[McSPI_ID], MCSPI_MODULCTRL, MS << 2);
- 		write_reg(mcspi_ptr[McSPI_ID], MCSPI_CH0CONF + chn_offset, (DataDir << 16 | TRM << 12 | (WL - 1) << 7 | EPOL << 6 | CLK_div << 2 | CLKmode));
-
-		if(TRM != BBBIO_McSPI_Tx_Only)
-			McSPI_Module[McSPI_ID].CH[channel].TxRx.flag |= McSPI_TxRx_Rx ;
-	        if(TRM != BBBIO_McSPI_Rx_Only) {
-        	        McSPI_Module[McSPI_ID].CH[channel].TxRx.flag |= McSPI_TxRx_Tx ;
-			McSPI_Module[McSPI_ID].CH[channel].TxRx.Tx =0;
-		}
-		McSPI_Module[McSPI_ID].CH[channel].status |=McSPI_CH_ENABLE;
-	}
-        else {
-#ifdef BBBIO_LIB_DBG
-		printf("BBBIO_McSPI_work: McSPI %d CM_PER Clock Gating!\n",McSPI_ID);
-#endif
-                return 0 ;
-        }
 	return 1 ;
 }
 /* ----------------------------------------------------------------------------------------------- */

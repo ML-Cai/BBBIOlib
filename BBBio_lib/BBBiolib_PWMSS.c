@@ -341,23 +341,29 @@ int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
             reg16=(void*)epwm_ptr[PWMID] +EPWM_TBCNT ;
             *reg16=0;
 */
-		reg16=(void*)epwm_ptr[PWMID] +EPWM_CMPB;              // duty cycle B
+		/* setting clock diver and freeze time base */
+		reg16=(void*)epwm_ptr[PWMID] +EPWM_TBCTL;
+		*reg16 = TBCTL_CTRMODE_UP | (NearCLKDIV << 10) | (NearHSPCLKDIV << 7);
+
+		/* reset time base counter */
+		reg16 = (void *)epwm_ptr[PWMID] + EPWM_TBCNT;
+		*reg16 = 0;
+
+		/*  setting duty A and duty B */
+		reg16=(void*)epwm_ptr[PWMID] +EPWM_CMPB;
 		*reg16 =(unsigned short)((float)NearTBPRD * dutyB);
 
-		reg16=(void*)epwm_ptr[PWMID] +EPWM_CMPA;              // duty cycle A
+		reg16=(void*)epwm_ptr[PWMID] +EPWM_CMPA;
 		*reg16 =(unsigned short)((float)NearTBPRD * dutyA);
 
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_TBPRD;
 		*reg16 =(unsigned short)NearTBPRD;
 
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_AQCTLA;
-		*reg16 = (1 << 1) | ( 1 << 4) ;
+		*reg16 = (0x1) | ( 0x3 << 4) ;
 
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_AQCTLB;
-		*reg16 = (1 << 1) | ( 1 << 8) ;
-
-		reg16=(void*)epwm_ptr[PWMID] +EPWM_TBCTL;
-		*reg16 = TBCTL_CTRMODE_UP | (NearCLKDIV << 10) | (NearHSPCLKDIV << 7);
+		*reg16 = (0x1) | ( 0x3 << 8) ;
 	}
 	return 1;
 }
@@ -375,6 +381,9 @@ void BBBIO_ehrPWM_Enable(unsigned int PWMSS_ID)
 	volatile unsigned short *reg16 ;
         reg16=(void *)epwm_ptr[PWMSS_ID] + EPWM_TBCTL;
 	*reg16 &= ~0x3;
+
+	reg16 = (void *)epwm_ptr[PWMSS_ID] + EPWM_TBCNT;
+	*reg16 = 0;
 }
 
 void BBBIO_ehrPWM_Disable(unsigned int PWMSS_ID)
@@ -382,6 +391,9 @@ void BBBIO_ehrPWM_Disable(unsigned int PWMSS_ID)
  	volatile unsigned short *reg16 ;
         reg16=(void *)epwm_ptr[PWMSS_ID] + EPWM_TBCTL;
         *reg16 |= 0x3;
+
+	reg16 = (void *)epwm_ptr[PWMSS_ID] + EPWM_TBCNT;
+	*reg16 = 0;
 }
 //--------------------------------------------------------
 
