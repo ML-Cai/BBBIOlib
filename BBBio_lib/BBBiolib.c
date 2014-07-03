@@ -35,42 +35,43 @@ const unsigned int GPIO_AddressOffset[]={BBBIO_GPIO0_ADDR, BBBIO_GPIO1_ADDR, BBB
 /* GPIO Port number set of Beaglebone Black P8 .
  * -1 as GND or VCC , Number 0/1/2 as GPIO 0/1/2
  */
-const char p8_PortSet[] = {-1,-1, 1, 1, 1, 1, 2, 2,
-			2 , 2, 1, 1, 0, 0, 1, 1,
-			0 , 2, 0, 1, 1, 1, 1, 1,
-			1 , 1, 2, 2, 2, 2, 0, 0,
-			0 , 2, 0, 2, 2, 2, 2, 2,
-			2 , 2, 2, 2, 2, 2};
+const signed char p8_PortSet[] = {-1, -1, 1, 1, 1, 1, 2, 2,
+				2, 2, 1, 1, 0, 0, 1, 1, 
+				0, 2, 0, 1, 1, 1, 1, 1, 
+				1, 1, 2, 2, 2, 2, 0, 0, 
+				0, 2, 0, 2, 2, 2, 2, 2, 
+				2, 2, 2, 2, 2, 2};
 
 /* GPIO Port ID set of Beaglebone Black P8  ,
  * 0 as GND , offset X as GPIO ID m this value must combine with GPIO number
  */
-const unsigned int p8_PortIDSet[] = {0,	0,	1<<6,	1<<7,	1<<2,	1<<3,	1<<2,	1<<3,
-				1<<5,	1<<4,	1<<13,	1<<12,	1<<23,	1<<26,	1<<15,	1<<14,
-				1<<27,	1<<1,	1<<22,	1<<31,	1<<30,	1<<5,	1<<4,	1<<1,
-				1<<0,	1<<29,	1<<22,	1<<24,	1<<23,	1<<25,	1<<10,	1<<11,
-				1<<9,	1<<17,	1<<8,	1<<16,	1<<14,	1<<15,	1<<12,	1<<13,
-				1<<10,	1<<11,	1<<8,	1<<9,	1<<6,	1<<7};
+const unsigned int p8_PortIDSet[] = {0,	0,	1<<6,	1<<7,	1<<2,	1<<3,	1<<2,	1<<3,	
+				1<<5,	1<<4,	1<<13,	1<<12,	1<<23,	1<<26,	1<<15,	
+				1<<14,	1<<27,	1<<1,	1<<22,	1<<31,	1<<30,	1<<5,	
+				1<<4,	1<<1,	1<<0,	1<<29,	1<<22,	1<<24,	1<<23,	
+				1<<25,	1<<10,	1<<11,	1<<9,	1<<17,	1<<8,	1<<16,	
+				1<<14,	1<<15,	1<<12,	1<<13,	1<<10,	1<<11,	1<<8,	
+				1<<9,	1<<6,	1<<7};
 
 /* GPIO Port number set of Beaglebone Black P9  ,
  * -1 as GND or VCC , 0 / 1 / 2 for GPIO 0/1/2
  */
-const char p9_PortSet[] = {-1,-1,-1,-1,-1,-1,-1,-1,
-			-1,-1, 0, 1, 0, 1, 1, 1,
-			0, 0, 0, 0, 0, 0, 1,-1,
-			3,-1, 3, 3, 3,-1, 3,-1,
-			-1,-1,-1,-1,-1,-1,-1,-1,
-			0, 0,-1,-1,-1,-1};
+const signed char p9_PortSet[] = {-1, -1, -1, -1, -1, -1, -1,
+				-1, -1, -1, 0, 1, 0, 1, 1, 
+				1, 0, 0, 0, 0, 0, 0, 1, 0, 
+				3, 0, 3, 3, 3, 3, 3, -1, -1, 
+				-1, -1, -1, -1, -1, -1, -1, 
+				0, 0, -1, -1, -1, -1};
 
 /*  GPIO Port ID set of Beaglebone Black P9  ,
  * 0 as GND , offset X as GPIO ID m this value must combine with GPIO number
  */
-const unsigned int p9_PortIDSet[]={0,	0,	0,	0,	0,	0,	0,	0,
-				0,	0,	1<<30,	1<<28,	1<<31,	1<<18,	1<<16,	1<<19,
-				1<<5,	1<<4,	1<<13,	1<<12,	1<<3,	1<<2,	1<<17,	0,
-				1<<21,	0,	1<<19,	1<<17,	1<<15,	0,	1<<14,	0,
-				0,	0,	0,	0,	0,	0,	0,	0,
-				1<<20,	1<<7,	0,	0,	0,	0};
+const unsigned int p9_PortIDSet[]={0,	0,	0,	0,	0,	0,	0,	0,	
+				0,	0,	1<<30,	1<<28,	1<<31,	1<<18,	1<<16,	1<<19,	
+				1<<5,	1<<4,	1<<13,	1<<12,	1<<3,	1<<2,	1<<17,	
+				1<<15,	1<<21,	1<<14,	1<<19,	1<<17,	1<<15,	1<<16,	
+				1<<14,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1<<20,	
+				1<<7,	0,	0,	0,	0};
 
 /* Memory Handle and Control Handle */
 int memh=0;
@@ -81,7 +82,7 @@ volatile unsigned int *cm_per_addr = NULL;
 volatile unsigned int *cm_wkup_addr = NULL ;
 
 /* pointer to const Port set and Port ID set array */
-char* PortSet_ptr[2];
+signed char* PortSet_ptr[2];
 unsigned int* PortIDSet_ptr[2];
 /*-----------------------------------------------------------------------------------------------
  * ********************************
@@ -185,7 +186,7 @@ int iolib_setdir(char port, char pin, char dir)
 		param_error=1;
 	if ((pin < 1 ) || (pin > 46))		// if pin over/underflow , range : 1~46
 		param_error=1;
-	if (PortSet_ptr[port][pin] < 0)	// pass GND OR VCC (PortSet as -1)
+	if (PortSet_ptr[port-8][pin-1] < 0)	// pass GND OR VCC (PortSet as -1)
 		param_error=1;
 
 	if (param_error)
