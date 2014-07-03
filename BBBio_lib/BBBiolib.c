@@ -53,7 +53,6 @@ const unsigned int p8_PortIDSet[] = {0,	0,	1<<6,	1<<7,	1<<2,	1<<3,	1<<2,	1<<3,
             1<<14,	1<<15,	1<<12,	1<<13,	1<<10,	1<<11,	1<<8,	
             1<<9,	1<<6,	1<<7};
 
-
 /* GPIO Port number set of Beaglebone Black P9  ,
  * -1 as GND or VCC , 0 / 1 / 2 for GPIO 0/1/2
  */
@@ -73,7 +72,6 @@ const unsigned int p9_PortIDSet[]={0,	0,	0,	0,	0,	0,	0,	0,
             1<<15,	1<<21,	1<<14,	1<<19,	1<<17,	1<<15,	1<<16,	
             1<<14,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1<<20,	
             1<<7,	0,	0,	0,	0};
-				
 
 /* Memory Handle and Control Handle */
 int memh=0;
