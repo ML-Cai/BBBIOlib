@@ -113,8 +113,8 @@ static int PWMSS_module_ctrl(unsigned int PWMSS_ID, int enable)
 		else {
 			printf("PWMSS_module_ctrl : PWMSS-%d timebase clock disable in Control Module\n", PWMSS_ID);
 		}
-		ret = 0 ;
 #endif
+		ret = 0 ;
 	}
 	*reg = 0x3 << 16;	/* Module is disabled and cannot be accessed */
 	return ret;
@@ -152,6 +152,9 @@ int BBBIO_PWM_Init()
 		epwm_ptr[i] = (void *)pwmss_ptr[i] + 0x200 ;
 
 		if(!PWMSS_module_ctrl(i, 1)) {
+#ifdef BBBIO_LIB_DBG
+			printf("BBBIO_PWM_Init: PWMSS %d clock  failure!\n", i);
+#endif
 			goto INIT_ERROR ;
 		}
     	}

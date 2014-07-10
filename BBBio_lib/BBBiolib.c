@@ -186,7 +186,7 @@ int iolib_setdir(char port, char pin, char dir)
 		param_error=1;
 	if ((pin < 1 ) || (pin > 46))		// if pin over/underflow , range : 1~46
 		param_error=1;
-	if (PortSet_ptr[port-8][pin-1] < 0)	// pass GND OR VCC (PortSet as -1)
+	if (PortSet_ptr[port - 8][pin - 1] < 0)	// pass GND OR VCC (PortSet as -1)
 		param_error=1;
 
 	if (param_error)
@@ -549,7 +549,7 @@ int BBBIO_sys_pinmux_check(unsigned int port, unsigned int pin, unsigned int Cfl
 		goto PARAM_ERROR ;
 	if ((pin < 1) || (pin > 46))                // if pin over/underflow , range : 1~46
 		goto PARAM_ERROR ;
-	if (PortSet_ptr[port][pin] < 0)   	// pass GND OR VCC (PortSet as -1)
+	if (PortSet_ptr[port - 8][pin - 1] < 0)   	// pass GND OR VCC (PortSet as -1)
 		goto PARAM_ERROR ;
 
 	port -= 8;
@@ -628,7 +628,7 @@ int  BBBIO_sys_Enable_Debouncing(unsigned int port ,unsigned int pin ,unsigned i
             param_error=1;
         if ((pin<1) || (pin>46))                // if pin over/underflow , range : 1~46
             param_error=1;
-        if (PortSet_ptr[port][pin]<0)   // pass GND OR VCC (PortSet as -1)
+        if (PortSet_ptr[port - 8][pin - 1]<0)   // pass GND OR VCC (PortSet as -1)
             param_error=1;
 	if(GDB_time >255)
 	    param_error=1;
@@ -639,8 +639,8 @@ int  BBBIO_sys_Enable_Debouncing(unsigned int port ,unsigned int pin ,unsigned i
 #endif
 		return -1 ;
 	}
-	port -=8 ;
-	pin -=1 ;
+	port -= 8;
+	pin -= 1;
 
         /* Enable GPIO1 GDBCLK */
 	if(PortSet_ptr[port][pin]==0) {	/* CLKCTRL of  GPIO 0 is in CM_WKUP register */
@@ -694,7 +694,7 @@ int  BBBIO_sys_Disable_Debouncing(unsigned int port ,unsigned int pin ,unsigned 
             param_error = 1;
         if ((pin < 1) || (pin > 46))	/* if pin over/underflow , range : 1~46 */
             param_error = 1;
-        if (PortSet_ptr[port][pin] < 0)   /* pass GND OR VCC (PortSet as -1) */
+        if (PortSet_ptr[port - 8][pin - 1] < 0)   /* pass GND OR VCC (PortSet as -1) */
             param_error = 1;
         if(GDB_time > 255)
             param_error = 1;
@@ -705,8 +705,8 @@ int  BBBIO_sys_Disable_Debouncing(unsigned int port ,unsigned int pin ,unsigned 
 #endif
 		return -1 ;
         }
-        port -=8 ;
-        pin -=1 ;
+        port -= 8;
+        pin -= 1;
 
         /* Enable GPIO1 GDBLCK */
         if(PortSet_ptr[port][pin]==0) {   /* the CLKCTRL of  GPIO 0 is in CM_WKUP register */

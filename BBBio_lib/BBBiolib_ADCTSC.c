@@ -324,8 +324,6 @@ int BBBIO_ADCTSC_channel_ctrl(unsigned int chn_ID, int mode, int open_dly, int s
 	*reg &= ~(0x1F) ;	/* pre-maks Mode filed */
 	*reg |= (mode | (sample_avg << 2) | (chn_ID << 19) | (chn_ID << 15) | ((chn_ID % 2) << 26) );
 
-	printf("AIN [%d] %X\n", chn_ID ,*reg);
-
 	/* set open delay */
 	if(open_dly <0 || open_dly >262143) {
 		open_dly = 0;
