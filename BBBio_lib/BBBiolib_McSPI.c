@@ -111,7 +111,7 @@ int BBBIO_McSPI_Init()
 		return 0;
     	}
 
-	for (i=0; i<2; i++) {
+	for (i = 0 ; i < MCSPI_ARG_MODULE_COUNT ; i++) {
 		mcspi_ptr[i] = mmap(0, MCSPI_MMAP_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, memh, McSPI_AddressOffset[i]);
 		if(mcspi_ptr[i] == MAP_FAILED) {
 #ifdef BBBIO_LIB_DBG
@@ -119,6 +119,7 @@ int BBBIO_McSPI_Init()
 #endif
 	                return 0;
 		}
+		//BBBIO_McSPI_Reset(i);
 	}
     return 1;
 }
@@ -127,7 +128,6 @@ int BBBIO_McSPI_Init()
 void BBBIO_McSPI_Tx(unsigned int McSPI_ID ,unsigned int channel ,unsigned int data)
 {
 	McSPI_Module[McSPI_ID].CH[channel].Tx = data ;
-//	printf("Tx : %X\n", data);
 }
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -178,48 +178,49 @@ int BBBIO_McSPI_channel_ctrl(unsigned int McSPI_ID ,		/* SPI module ID , am335x 
 }
 /* ----------------------------------------------------------------------------------------------- */
 /* McSPI module work */
-int BBBIO_McSPI_work(unsigned int McSPI_ID)
+int BBBIO_McSPI_work(unsigned int McSPI_ID, unsigned int chn)
 {
-	unsigned int chn =0;
 	unsigned int chn_offset =0;
 	unsigned int reg_value ;
+	unsigned int Tx_flag =0;
+	struct BBBIO_McSPI_CH_struct * chn_ptr = NULL;
 
 	/* check CM_PER enable status, or it may caue "Bus error" signal message. */
 	if(McSPI_Module[McSPI_ID].CM_PER_enable) {
-		for(chn =0 ; chn < MCSPI_ARG_CHANNEL_COUNT ; chn ++) {
-			if(McSPI_Module[McSPI_ID].CH[chn].status & McSPI_CH_ENABLE) {
-				chn_offset = chn * MCSPI_CH_REG_OFFSET ;
+		if(McSPI_Module[McSPI_ID].CH[chn].status & McSPI_CH_ENABLE) {
+			chn_offset = chn * MCSPI_CH_REG_OFFSET ;
+			chn_ptr = &McSPI_Module[McSPI_ID].CH[chn];
 
-				/* channel enable */
-				write_reg(mcspi_ptr[McSPI_ID], MCSPI_CH0CTRL + chn_offset, 1);
+			/* channel enable */
+			write_reg(mcspi_ptr[McSPI_ID], MCSPI_CH0CTRL + chn_offset, 1);
 
-				/* set transform data */
-				if(McSPI_Module[McSPI_ID].CH[chn].flag & McSPI_TxRx_Tx) {
-					write_reg(mcspi_ptr[McSPI_ID], MCSPI_TX0 +chn_offset, McSPI_Module[McSPI_ID].CH[chn].Tx );
-				}
-				else {	/* must set a dummy data in Tx reigster of receive only mode .*/
-					write_reg(mcspi_ptr[McSPI_ID], MCSPI_TX0 +chn_offset, 0);
-				}
+			/* set transform data */
+			if(chn_ptr->flag & McSPI_TxRx_Tx) {
+				write_reg(mcspi_ptr[McSPI_ID], MCSPI_TX0 +chn_offset, chn_ptr->Tx);
+			}
+			else {	/* must set a dummy data in Tx reigster of receive only mode .*/
+				write_reg(mcspi_ptr[McSPI_ID], MCSPI_TX0 +chn_offset, 0);
+			}
 
-				/* waiting for EOT ,not support interrupt yet , using polling waiting for the moment*/
-				reg_value =0;
+			/* waiting for EOT ,not support interrupt yet , using polling waiting for the moment*/
+			reg_value =0;
+			if(chn_ptr->flag & McSPI_TxRx_Tx) {
 				while(!MCSPI_GET_CHSTAT_EOT(reg_value)) {
 					reg_value = read_reg(mcspi_ptr[McSPI_ID], MCSPI_CH0STAT + chn_offset);
 					sched_yield();
 				}
-                                while(!MCSPI_GET_CHSTAT_RXS(reg_value)) {
+			}
+			if(chn_ptr->flag & McSPI_TxRx_Rx) {
+				while(!MCSPI_GET_CHSTAT_RXS(reg_value)) {
 					reg_value = read_reg(mcspi_ptr[McSPI_ID], MCSPI_CH0STAT + chn_offset);
 					sched_yield();
 				}
-
 				/* copy receive data */
-				if(McSPI_Module[McSPI_ID].CH[chn].flag & McSPI_TxRx_Rx) {
-					McSPI_Module[McSPI_ID].CH[chn].Rx = read_reg(mcspi_ptr[McSPI_ID], MCSPI_RX0 + chn_offset);
-				}
-
-				/* channel disable */
-				write_reg(mcspi_ptr[McSPI_ID], MCSPI_CH0CTRL + chn_offset, 0);
+				chn_ptr->Rx = read_reg(mcspi_ptr[McSPI_ID], MCSPI_RX0 + chn_offset);
 			}
+
+			/* channel disable */
+			write_reg(mcspi_ptr[McSPI_ID], MCSPI_CH0CTRL + chn_offset, 0);
 		}
 	}
 	else {

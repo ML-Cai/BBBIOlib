@@ -37,7 +37,7 @@
 #define BBBIO_McSPI_EN_ACT_HIGH	0x0
 #define BBBIO_McSPI_EN_ACT_LOW	0x1
 //-------------------------------------------------------------------------
-int BBBIO_McSPI_work(unsigned int McSPI_ID);
+int BBBIO_McSPI_work(unsigned int McSPI_ID, unsigned int chn);
 
 int BBBIO_McSPI_Init() ;
 
