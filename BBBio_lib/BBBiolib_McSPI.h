@@ -36,14 +36,28 @@
 
 #define BBBIO_McSPI_EN_ACT_HIGH	0x0
 #define BBBIO_McSPI_EN_ACT_LOW	0x1
+
+#define BBBIO_McSPI_CLDIV_1	0x0
+#define BBBIO_McSPI_CLDIV_2	0x1
+#define BBBIO_McSPI_CLDIV_4	0x2
+#define BBBIO_McSPI_CLDIV_8	0x3
+#define BBBIO_McSPI_CLDIV_16	0x4
+#define BBBIO_McSPI_CLDIV_32	0x5
+#define BBBIO_McSPI_CLDIV_64	0x6
+#define BBBIO_McSPI_CLDIV_128	0x7
+#define BBBIO_McSPI_CLDIV_256	0x8
+#define BBBIO_McSPI_CLDIV_512	0x9
+#define BBBIO_McSPI_CLDIV_1024	0xA
+#define BBBIO_McSPI_CLDIV_2048	0xB
+#define BBBIO_McSPI_CLDIV_4096	0xC
+#define BBBIO_McSPI_CLDIV_8192	0xD
+#define BBBIO_McSPI_CLDIV_16384	0xE
+#define BBBIO_McSPI_CLDIV_32768	0xF
+
 //-------------------------------------------------------------------------
-int BBBIO_McSPI_work(unsigned int McSPI_ID, unsigned int chn);
+int BBBIO_McSPI_work(unsigned int McSPI_ID, unsigned int chn, unsigned int Tx_data, unsigned int *Rx_data);
 
 int BBBIO_McSPI_Init() ;
-
-void BBBIO_McSPI_Tx(unsigned int McSPI_ID ,unsigned int channel ,unsigned int data) ;
-
-unsigned int BBBIO_McSPI_Rx(unsigned int McSPI_ID ,unsigned int channel ) ;
 
 #define BBBIO_McSPI_Enable(a) BBBIO_McSPI_CLK_set(a,1,0)
 #define BBBIO_McSPI_Disable(a) BBBIO_McSPI_CLK_set(a,0,0)

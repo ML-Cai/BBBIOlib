@@ -60,8 +60,8 @@ DEBOUNCING : ${DEMO_PATH}Demo_Debouncing/Debouncing.c libBBBio.a
 4x4keypad : ${DEMO_PATH}Demo_4x4keypad/4x4keypad.c libBBBio.a
 	gcc -o 4x4keypad ${DEMO_PATH}Demo_4x4keypad/4x4keypad.c -L ${LIB_PATH} -lBBBio
 
-PWM : ${DEMO_PATH}Demo_PWM/PWM.c libBBBio.a
-	gcc -o PWM ${DEMO_PATH}Demo_PWM/PWM.c -L ${LIB_PATH} -lBBBio
+PWM : ${DEMO_PATH}Demo_PWM/PWM2.c libBBBio.a
+	gcc -o PWM ${DEMO_PATH}Demo_PWM/PWM2.c -L ${LIB_PATH} -lBBBio
 
 BMOTOR : ${DEMO_PATH}Demo_BrushlessMotor/BrushlessMotor.c libBBBio.a
 	 gcc -o BMOTOR ${DEMO_PATH}Demo_BrushlessMotor/BrushlessMotor.c -L ${LIB_PATH} -lBBBio
