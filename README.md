@@ -53,14 +53,13 @@ Demo Directory include some demo basic this library ,each circuit layout ,pictur
 	3. ADC Argument Calculation toolkit
 
 
-
 **Demo List :**
 
-	1. LED demo
+	1. LED Demo
 
-	2. LED_GPIO demo
+	2. LED_GPIO Demo
 
-	3. ADT7301 demo
+	3. ADT7301 Demo (Digital Temperature sensor)
 
 	4. Seven-Segment Array Display demo
 
@@ -68,13 +67,15 @@ Demo Directory include some demo basic this library ,each circuit layout ,pictur
 
 	6. 4x4 keypad Demo
 
-	7. PWM Demo , [using BBBIO-EHRPWM overlay]
+	7. PWM Demo
 
-	8. Servo Motor Demo , [using BBBIO-EHRPWM overlay]
+	8. Servo Motor Demo
 
 	9. ADC Demo
 
 	10. ADC with Arduino Microphone Demo
+
+	11. L3G4200D Demo (3-axis Gyroscope)
 
 
 **overlays**
@@ -83,21 +84,31 @@ BBBIO include some device tree overlays example for linux kernel 3.8.13 .
 
 compile each overlays:
 
-	cd overlay
+	#cd overlay
 
-	./build.sh
+	#make
+
+Install overlays
+
+	#cd overlay
+
+	#make install
 
 apply overlay :
 
-	cp {OVERLAY} /lib/firmware/
+	#cp {OVERLAY} /lib/firmware/
 
-	echo {OVERLAY's part-number} >> /sys/devices/bone_capemgr.*/slots
+	#echo {OVERLAY's part-number} >> /sys/devices/bone_capemgr.*/slots
 
 overlays list :
 
-	1. EHRPWM0~3 overlay
+	1. EHRPWM 0~3 overlay
 
-		echo BBBIO-EHRPWM >> /sys/devices/bone_capemgr.*/slots
+		#echo BBBIO-EHRPWM >> /sys/devices/bone_capemgr.*/slots
+
+	2. SPI 1 overlays
+
+		#echo BBBIO-SPI1 >> /sys/devices/bone_capemgr.*/slots
 
 Reference from :
 
