@@ -359,10 +359,10 @@ int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
 		*reg16 =(unsigned short)NearTBPRD;
 
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_AQCTLA;
-		*reg16 = 0x1 | ( 0x3 << 4) ;
-
+		*reg16 = 0x2 | ( 0x3 << 4) ;
+		
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_AQCTLB;
-		*reg16 = 0x1 | ( 0x3 << 8) ;
+		*reg16 = 0x2 | ( 0x3 << 8) ;
 
 		/* reset time base counter */
 		reg16 = (void *)epwm_ptr[PWMID] + EPWM_TBCNT;
@@ -385,6 +385,12 @@ void BBBIO_ehrPWM_Enable(unsigned int PWMSS_ID)
         reg16=(void *)epwm_ptr[PWMSS_ID] + EPWM_TBCTL;
 	*reg16 &= ~0x3;
 
+	reg16=(void*)epwm_ptr[PWMSS_ID] +EPWM_AQCTLA;
+	*reg16 = 0x2 | ( 0x3 << 4) ;
+		
+	reg16=(void*)epwm_ptr[PWMSS_ID] +EPWM_AQCTLB;
+	*reg16 = 0x2 | ( 0x3 << 8) ;
+
 	reg16 = (void *)epwm_ptr[PWMSS_ID] + EPWM_TBCNT;
 	*reg16 = 0;
 }
@@ -394,6 +400,12 @@ void BBBIO_ehrPWM_Disable(unsigned int PWMSS_ID)
  	volatile unsigned short *reg16 ;
         reg16=(void *)epwm_ptr[PWMSS_ID] + EPWM_TBCTL;
         *reg16 |= 0x3;
+
+	reg16=(void*)epwm_ptr[PWMSS_ID] +EPWM_AQCTLA;
+	*reg16 = 0x1 | ( 0x3 << 4) ;
+		
+	reg16=(void*)epwm_ptr[PWMSS_ID] +EPWM_AQCTLB;
+	*reg16 = 0x1 | ( 0x3 << 8) ;
 
 	reg16 = (void *)epwm_ptr[PWMSS_ID] + EPWM_TBCNT;
 	*reg16 = 0;

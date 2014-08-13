@@ -14,7 +14,8 @@ int main(void)
 	    SM_1_duty  = 4.0f + i * 0.04444f ;
 	    printf("Angle : %d , duty : %f\n" ,i ,SM_1_duty);
 	    BBBIO_PWMSS_Setting(BBBIO_PWMSS0 , 50.0f ,SM_1_duty , SM_1_duty);
-	    sleep(1);
+		BBBIO_ehrPWM_Enable(BBBIO_PWMSS0);
+	    sleep(2);
 	}
 
         BBBIO_ehrPWM_Disable(BBBIO_PWMSS0);
