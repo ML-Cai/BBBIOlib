@@ -13,20 +13,19 @@
 // comment this define will cause non-debouncing mode
 #define DEBOUNCING
 //-----------------------------------------------
-int
-main(void)
+int main(void)
 {
 	int DebFlag  =DEBOUNCING_BUTTON_UP;
 	int DebCount = 0;
-        iolib_init();
+	iolib_init();
 
 	iolib_setdir(8,12, BBBIO_DIR_IN);
-        iolib_setdir(8,11, BBBIO_DIR_IN);
+	iolib_setdir(8,11, BBBIO_DIR_IN);
 
 #ifdef DEBOUNCING
         BBBIO_sys_Enable_Debouncing(8 ,11 ,10);
 #else
-	BBBIO_sys_Disable_Debouncing(8 ,11 ,0);
+	BBBIO_sys_Disable_Debouncing(8 ,11);
 #endif
 
 	printf("OK\n");
@@ -55,7 +54,7 @@ main(void)
 		    Test ++;
 		}
         }
-	BBBIO_sys_Disable_Debouncing(8 ,11 ,0);
+	BBBIO_sys_Disable_Debouncing(8 ,11);
         iolib_free();
 	printf("Release\n");
         return(0);

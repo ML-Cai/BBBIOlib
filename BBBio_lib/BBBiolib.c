@@ -708,24 +708,11 @@ int  BBBIO_sys_Disable_Debouncing(unsigned int port ,unsigned int pin ,unsigned 
         port -= 8;
         pin -= 1;
 
-        /* Enable GPIO1 GDBLCK */
-        if(PortSet_ptr[port][pin]==0) {   /* the CLKCTRL of  GPIO 0 is in CM_WKUP register */
-            reg =(void*)cm_wkup_addr + BBBIO_CM_WKUP_GPIO0_CLKCTRL;
-            *reg &= ~1 << 18;
-        }
-        else {
-            reg =(void*)cm_per_addr + GPIO_CLKCTRL[PortSet_ptr[port][pin] - 1] ;
-            *reg &= ~1 << 18;
-        }
+	/* Disable Debouncing */
+	reg = (void*)gpio_addr[PortSet_ptr[port][pin]] +BBBIO_GPIO_DEBOUNCENABLE ;
+	*reg &= ~PortIDSet_ptr[port][pin] ;
 
-	/* Enable Debouncing */
-        reg = (void*)gpio_addr[PortSet_ptr[port][pin]] +BBBIO_GPIO_DEBOUNCENABLE ;
-        *reg &= ~PortIDSet_ptr[port][pin] ;
-
-	/* setting Debouncing time */
-      	reg = (void *)gpio_addr[PortSet_ptr[port][pin]] +BBBIO_GPIO_DEBOUNCINGTIME ;
-      	*reg = GDB_time ;
-  return 0;
+	return 0;
 }
 
 //-----------------------------------------------------------------------------------------------
