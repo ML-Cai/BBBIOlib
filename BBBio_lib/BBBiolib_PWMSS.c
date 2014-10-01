@@ -301,6 +301,10 @@ int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
 	Divisor =  (Cyclens / 655350.0f) ;	/* am335x provide (128*14) divider , and per TBPRD means 10 ns when divider /1 ,
 						 * and max TBPRD is 65535 , so , the max cycle is 128*14* 65535 *10ns
 						 */
+#ifdef BBBIO_LIB_DBG
+	printf("Cyclens %f , Divisor %f\n", Cyclens, Divisor);
+#endif
+
 	if(Divisor > (128 * 14)) {
 #ifdef BBBIO_LIB_DBG
 		printf("BBBIO_PWMSS_Setting : Can't generate %f HZ \n", HZ);
@@ -324,29 +328,12 @@ int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
 		NearTBPRD = (Cyclens / (10.0 *CLKDIV_div[NearCLKDIV] *HSPCLKDIV_div[NearHSPCLKDIV])) ;
 
 #ifdef BBBIO_LIB_DBG
-		printf("nearest TBPRD %d\n ",NearTBPRD);
+		printf("nearest TBPRD %d, %f %f\n ",NearTBPRD,NearTBPRD * dutyA, NearTBPRD * dutyB);
 #endif
 
-		/* Setting register */
-/*
-	    reg16=(void*)epwm_ptr[PWMID] +EPWM_DBRED ;
-	    *reg16 = 0;
-
-            reg16=(void*)epwm_ptr[PWMID] +EPWM_DBFED ;
-            *reg16 = 0;
-
-	    reg16=(void*)epwm_ptr[PWMID] +EPWM_DBCTL ;
-            *reg16 = 0;
-
-
-            reg16=(void*)epwm_ptr[PWMID] +EPWM_TBPHS ;
-            *reg16=0;
-            reg16=(void*)epwm_ptr[PWMID] +EPWM_TBCNT ;
-            *reg16=0;
-*/
 		/* setting clock diver and freeze time base */
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_TBCTL;
-		*reg16 = TBCTL_CTRMODE_UP | (NearCLKDIV << 10) | (NearHSPCLKDIV << 7) | 0x3;
+		*reg16 = TBCTL_CTRMODE_FREEZE | (NearCLKDIV << 10) | (NearHSPCLKDIV << 7);
 
 		/*  setting duty A and duty B */
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_CMPB;
@@ -357,12 +344,6 @@ int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
 
 		reg16=(void*)epwm_ptr[PWMID] +EPWM_TBPRD;
 		*reg16 =(unsigned short)NearTBPRD;
-
-		reg16=(void*)epwm_ptr[PWMID] +EPWM_AQCTLA;
-		*reg16 = 0x2 | ( 0x3 << 4) ;
-		
-		reg16=(void*)epwm_ptr[PWMID] +EPWM_AQCTLB;
-		*reg16 = 0x2 | ( 0x3 << 8) ;
 
 		/* reset time base counter */
 		reg16 = (void *)epwm_ptr[PWMID] + EPWM_TBCNT;
@@ -382,8 +363,6 @@ int BBBIO_PWMSS_Setting(unsigned int PWMID , float HZ ,float dutyA ,float dutyB)
 void BBBIO_ehrPWM_Enable(unsigned int PWMSS_ID)
 {
 	volatile unsigned short *reg16 ;
-        reg16=(void *)epwm_ptr[PWMSS_ID] + EPWM_TBCTL;
-	*reg16 &= ~0x3;
 
 	reg16=(void*)epwm_ptr[PWMSS_ID] +EPWM_AQCTLA;
 	*reg16 = 0x2 | ( 0x3 << 4) ;
@@ -393,6 +372,9 @@ void BBBIO_ehrPWM_Enable(unsigned int PWMSS_ID)
 
 	reg16 = (void *)epwm_ptr[PWMSS_ID] + EPWM_TBCNT;
 	*reg16 = 0;
+
+        reg16=(void *)epwm_ptr[PWMSS_ID] + EPWM_TBCTL;
+	*reg16 &= ~0x3;
 }
 
 void BBBIO_ehrPWM_Disable(unsigned int PWMSS_ID)

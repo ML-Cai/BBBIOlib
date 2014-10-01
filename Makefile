@@ -15,13 +15,13 @@ libBBBio.a : ${LIB_PATH}BBBiolib.c ${LIB_PATH}BBBiolib.h BBBiolib_PWMSS.o BBBiol
 	cp ${LIB_PATH}libBBBio.a ./
 
 BBBiolib_PWMSS.o : ${LIB_PATH}BBBiolib_PWMSS.c ${LIB_PATH}BBBiolib_PWMSS.h
-	gcc -c ${LIB_PATH}BBBiolib_PWMSS.c -o ${LIB_PATH}BBBiolib_PWMSS.o
+	gcc -c ${LIB_PATH}BBBiolib_PWMSS.c -o ${LIB_PATH}BBBiolib_PWMSS.o -W 
 
 BBBiolib_McSPI.o : ${LIB_PATH}BBBiolib_McSPI.c ${LIB_PATH}BBBiolib_PWMSS.h
-	gcc -c ${LIB_PATH}BBBiolib_McSPI.c -o ${LIB_PATH}BBBiolib_McSPI.o
+	gcc -c ${LIB_PATH}BBBiolib_McSPI.c -o ${LIB_PATH}BBBiolib_McSPI.o -W
 
 BBBiolib_ADCTSC.o : ${LIB_PATH}BBBiolib_ADCTSC.c ${LIB_PATH}BBBiolib_ADCTSC.h
-	gcc -c ${LIB_PATH}BBBiolib_ADCTSC.c -o ${LIB_PATH}BBBiolib_ADCTSC.o
+	gcc -c ${LIB_PATH}BBBiolib_ADCTSC.c -o ${LIB_PATH}BBBiolib_ADCTSC.o -W
 
 
 install : libBBBio.a 
@@ -60,8 +60,8 @@ DEBOUNCING : ${DEMO_PATH}Demo_Debouncing/Debouncing.c libBBBio.a
 4x4keypad : ${DEMO_PATH}Demo_4x4keypad/4x4keypad.c libBBBio.a
 	gcc -o 4x4keypad ${DEMO_PATH}Demo_4x4keypad/4x4keypad.c -L ${LIB_PATH} -lBBBio
 
-PWM : ${DEMO_PATH}Demo_PWM/PWM2.c libBBBio.a
-	gcc -o PWM ${DEMO_PATH}Demo_PWM/PWM2.c -L ${LIB_PATH} -lBBBio
+PWM : ${DEMO_PATH}Demo_PWM/PWM.c libBBBio.a
+	gcc -o PWM ${DEMO_PATH}Demo_PWM/PWM.c -L ${LIB_PATH} -lBBBio
 
 BMOTOR : ${DEMO_PATH}Demo_BrushlessMotor/BrushlessMotor.c libBBBio.a
 	 gcc -o BMOTOR ${DEMO_PATH}Demo_BrushlessMotor/BrushlessMotor.c -L ${LIB_PATH} -lBBBio
