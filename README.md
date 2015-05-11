@@ -5,6 +5,19 @@ Beaglebone black I/O library , using Memory mapped I/O
 
 Simple C I/O library of Beaglebone balck
 
+============================
+Hi , everyone
+
+I'm very very sorry. I'm not able to preserve of BBBiolib for private issues.
+
+I'will freezing update for 1 years.
+
+With my deepest regret.
+ Meng-Lun, Cai
+
+===========================
+
+
 	V1 	October 2013 - shabaz (iolib) : create basic library 
 
 	V2 	October 2013 - shabaz (iolib) : fix some BUG
@@ -25,6 +38,8 @@ Simple C I/O library of Beaglebone balck
 
 	V2.8	March.14 2014 - add ADC application of Arduino Microphone module ,
 				and ADC argument calculation toolkit .
+
+	Freezing March 11 2014 .
 
 =============================================================================================
 
